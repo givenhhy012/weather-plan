@@ -41,29 +41,9 @@ def get_temperature():
     if response.status_code == 200:
         data = response.json()
         
-        # API 응답에서 'item' 데이터 추출
-        items = data["response"]["body"]["items"]["item"]
-
-        # 현재 기온(T1H) 데이터 찾기
-        for item in items:
-            if item["category"] == "T1H":  # T1H: 기온 데이터
-                temperature = f"{item['obsrValue']}°C"
-                temperature_label.config(text=f"현재 기온: {temperature}")
-                break
-    else:
-        temperature_label.config(text="API 요청 실패")
-
-# Tkinter 윈도우 설정
-root = tk.Tk()
-root.title("현재 기온 정보")
-
-# 라벨 설정
-temperature_label = tk.Label(root, text="기온을 가져오는 중...", font=("Arial", 16))
-temperature_label.pack(pady=20)
-
-# 버튼 설정
-get_temp_button = tk.Button(root, text="기온 가져오기", command=get_temperature, font=("Arial", 14))
-get_temp_button.pack(pady=10)
-
-# Tkinter 윈도우 실행
-root.mainloop()
+      
+# 현재 기온 추출
+    for item in data["response"]["body"]["items"]["item"]:
+        if item["category"] == "T1H":  # T1H는 현재 기온 데이터
+            temperature = item["obsrValue"]
+            return temperature
