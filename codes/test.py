@@ -4,6 +4,9 @@ import calendar
 import random  # 날씨 데이터를 임의로 생성하기 위한 라이브러리
 from datetime import datetime
 
+import log_in
+import apiusing
+
 # 메인 창 생성
 root = tk.Tk()
 root.title("Login and Calendar")
@@ -21,6 +24,10 @@ current_month = now.month
 login_frame = tk.Frame(root)
 login_frame.pack(pady=20)
 
+# 폰트 설정
+FONT_LARGE = ("Helvetica", 16)
+
+
 # ID 입력
 id_label = tk.Label(login_frame, text="ID: ")
 id_label.grid(row=0, column=0, padx=5, pady=5)
@@ -33,10 +40,34 @@ pw_label.grid(row=1, column=0, padx=5, pady=5)
 pw_entry = tk.Entry(login_frame, show="*")
 pw_entry.grid(row=1, column=1, padx=5, pady=5)
 
+
+def sign_in_calendar():
+    email = id_entry.get()
+    password = pw_entry.get()
+
+    # 로그인 처리
+    user = log_in.sign_in(email, password)
+    if user:
+        show_calendar()  # 로그인 성공 시 캘린더 표시
+    else:
+        messagebox.showerror("Login Failed", "로그인 실패")
+        
+def sign_up_calendar():
+    email = id_entry.get()
+    password = pw_entry.get()
+
+    # 회원가입 처리
+    user = log_in.sign_up(email, password)
+    if user:
+        messagebox.showinfo("Sign Up Success", "회원가입 성공")
+        show_calendar()  # 회원가입 성공 시 캘린더 표시
+    else:
+        messagebox.showerror("Sign Up Failed", "회원가입 실패")
+
 # 날씨 정보 생성 함수 (예제용)
 def get_weather_info(date):
     weather_conditions = ["맑음", "흐림", "비", "눈", "폭풍"]
-    temperature = random.randint(-10, 35)  # 임의의 온도 생성
+    temperature = apiusing.get_temperature()  # apiusing 모듈에서 기온 가져오기
     condition = random.choice(weather_conditions)
     return f"{date} 날씨: {condition}, {temperature}℃"
 
@@ -130,8 +161,12 @@ month_label = tk.Label(calendar_frame, font=("Arial", 16))
 month_label.grid(row=0, column=0, columnspan=7)
 
 # 로그인 버튼
-login_button = tk.Button(login_frame, text="Login", command=show_calendar)
+login_button = tk.Button(login_frame, text="Login", command=sign_in_calendar)
 login_button.grid(row=2, column=0, columnspan=2, pady=10)
+
+# 회원가입 버튼
+signup_button = tk.Button(login_frame, text="Sign Up", command=sign_up_calendar)
+signup_button.grid(row=3, column=0, columnspan=2, pady=10)
 
 # 메인 루프 시작
 root.mainloop()
