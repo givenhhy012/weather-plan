@@ -8,6 +8,9 @@ import log_in
 import apiusing
 
 # ----- 초기 설정 -----
+
+calendar.setfirstweekday(calendar.SUNDAY)
+
 root = tk.Tk()
 root.title("Login and Calendar")
 root.geometry("1280x720")
@@ -75,7 +78,7 @@ def show_details(date):
 
     details_window = tk.Toplevel(root)
     details_window.title(f"{date} 상세 정보")
-    details_window.geometry("400x200")
+    details_window.geometry("800x400")
 
     weather_frame = tk.Frame(details_window, padx=10, pady=10)
     weather_frame.grid(row=0, column=0, sticky="nsew")
