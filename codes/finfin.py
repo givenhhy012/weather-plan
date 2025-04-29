@@ -7,7 +7,7 @@ from datetime import datetime
 import log_in
 import apiusing
 
-# ----- 초기 설정 -----
+# ----- 초기 설정 ----
 
 calendar.setfirstweekday(calendar.SUNDAY)
 
