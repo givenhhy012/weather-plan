@@ -7,7 +7,7 @@ from datetime import datetime
 import log_in
 import apiusing
 
-# ----- 초기 설정 -----
+# ----- 초기 설정 ----
 
 calendar.setfirstweekday(calendar.SUNDAY)
 
@@ -23,7 +23,7 @@ current_month = now.month
 FONT_LARGE = ("Helvetica", 16)
 FONT_MEDIUM = ("Helvetica", 12)
 
-# ----- 로그인 프레임 -----
+# ----- 로그인 프레임 ------
 login_frame = tk.Frame(root)
 login_frame.pack(pady=20)
 
