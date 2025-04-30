@@ -99,19 +99,16 @@ def update_calendar(*args):
     month_label.config(text=f"{year}년 {month}월")
     cal = calendar.monthcalendar(year, month)
 
-    # 기존 버튼 제거
     for widget in calendar_frame.winfo_children():
         if isinstance(widget, tk.Button):
             widget.destroy()
 
-    # 요일 라벨
     weekdays = ["일", "월", "화", "수", "목", "금", "토"]
     for idx, day in enumerate(weekdays):
         fg_color = "red" if day == "일" else ("blue" if day == "토" else "black")
         label = tk.Label(calendar_frame, text=day, font=FONT_MEDIUM, fg=fg_color)
         label.grid(row=1, column=idx)
 
-    # 날짜 버튼
     for i, week in enumerate(cal):
         for j, day in enumerate(week):
             if day != 0:
@@ -121,12 +118,7 @@ def update_calendar(*args):
                     num_stars = len(schedule[date].split(","))
                     text += "★" * num_stars
                 fg_color = "red" if j == 0 else ("blue" if j == 6 else "black")
-
-                # 오늘 날짜 강조
-                if date == f"{now.year}-{now.month:02d}-{now.day:02d}":
-                    bg_color = "lightyellow"
-                else:
-                    bg_color = "white"
+                bg_color = "lightyellow" if date == f"{now.year}-{now.month:02d}-{now.day:02d}" else "white"
 
                 btn = tk.Button(
                     calendar_frame,
@@ -139,12 +131,42 @@ def update_calendar(*args):
                 )
                 btn.grid(row=i+2, column=j, padx=2, pady=2)
 
+# ----- 월 변경 함수 -----
+def change_month(direction):
+    month = int(month_combobox.get())
+    year = int(year_combobox.get())
+
+    month += direction
+    if month > 12:
+        month = 1
+        year += 1
+    elif month < 1:
+        month = 12
+        year -= 1
+
+    month_combobox.set(month)
+    year_combobox.set(year)
+    update_calendar()
+
+# ----- 오늘로 이동 함수 -----
+def go_to_today():
+    year_combobox.set(now.year)
+    month_combobox.set(now.month)
+    update_calendar()
+
 # ----- 캘린더 표시 -----
 def show_calendar():
     login_frame.pack_forget()
     control_frame.pack(pady=10)
     calendar_frame.pack(pady=20)
     update_calendar()
+
+# ----- 로그인/회원가입 버튼 -----
+login_button = tk.Button(login_frame, text="Login", command=sign_in_calendar)
+login_button.grid(row=2, column=0, columnspan=2, pady=10)
+
+signup_button = tk.Button(login_frame, text="Sign Up", command=sign_up_calendar)
+signup_button.grid(row=3, column=0, columnspan=2, pady=10)
 
 # ----- 연도/월 선택 프레임 -----
 control_frame = tk.Frame(root)
@@ -158,35 +180,6 @@ month_label.grid(row=0, column=1, padx=10)
 next_button = tk.Button(control_frame, text=">", font=FONT_LARGE, command=lambda: change_month(1))
 next_button.grid(row=0, column=2, padx=10)
 
-# ----- 캘린더 프레임 -----
-calendar_frame = tk.Frame(root)
-
-# ----- 로그인/회원가입 버튼 -----
-login_button = tk.Button(login_frame, text="Login", command=sign_in_calendar)
-login_button.grid(row=2, column=0, columnspan=2, pady=10)
-
-signup_button = tk.Button(login_frame, text="Sign Up", command=sign_up_calendar)
-signup_button.grid(row=3, column=0, columnspan=2, pady=10)
-
-# ----- 월 변경 함수 -----
-def change_month(direction):
-    current_month = int(month_combobox.get())
-    current_year = int(year_combobox.get())
-
-    # 월 변경
-    new_month = current_month + direction
-    if new_month > 12:
-        new_month = 1
-        current_year += 1
-    elif new_month < 1:
-        new_month = 12
-        current_year -= 1
-
-    month_combobox.set(new_month)
-    year_combobox.set(current_year)
-    update_calendar()
-
-# ----- 초기 실행 -----
 year_combobox = ttk.Combobox(control_frame, values=list(range(2000, 2101)), state="readonly", width=8)
 year_combobox.set(current_year)
 year_combobox.grid(row=0, column=3, padx=5)
@@ -195,10 +188,20 @@ month_combobox = ttk.Combobox(control_frame, values=list(range(1, 13)), state="r
 month_combobox.set(current_month)
 month_combobox.grid(row=0, column=4, padx=5)
 
-# ----- 캘린더 표시 -----
+# 오늘로 이동 버튼
+today_button = tk.Button(control_frame, text="오늘로 이동", font=FONT_MEDIUM, command=go_to_today)
+today_button.grid(row=0, column=5, padx=10)
+
+# 콤보박스 이벤트 바인딩
+year_combobox.bind("<<ComboboxSelected>>", update_calendar)
+month_combobox.bind("<<ComboboxSelected>>", update_calendar)
+
+# ----- 캘린더 프레임 -----
+calendar_frame = tk.Frame(root)
+
+# ----- 초기 실행 -----
 year_combobox.set(current_year)
 month_combobox.set(current_month)
 update_calendar()
 
 root.mainloop()
-
