@@ -3,8 +3,11 @@ import requests
 import json
 from datetime import datetime, timedelta
 
-# 기상청 API 키 (공공데이터포털에서 발급받은 디코딩된 키 입력)
+# 기상청 API 키 (공공데이터포털에서 발급받은 디코딩된 키 )
 API_KEY = "c9+P8KoYVHHclcwNES4SC2Iq7MZW787CxlmV+J2aXwxh7sVV4sZ76OFiOKoVgN/HDVTt689y004GqWIRvWTFmQ=="
+
+# 기상청_지상(종관, ASOS) 일자료 조회 API 키 (공공데이터포털에서 발급받은 디코딩된 키 )
+API_PAST_KEY = "c9+P8KoYVHHclcwNES4SC2Iq7MZW787CxlmV+J2aXwxh7sVV4sZ76OFiOKoVgN/HDVTt689y004GqWIRvWTFmQ=="
 
 # 격자 좌표 (예: 서울 종로구 -> nx=60, ny=127)
 NX, NY = 60, 127
@@ -14,6 +17,9 @@ API_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtN
 
 # 단기예보 API URL
 API_URL_dangi = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
+
+# 요청 URL (기상청 종관 기온 데이터: 일자료)
+API_URL_PAST = "http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList"
 
 
 # 현재기온 가져오는 함수 => 오늘을 제외한 다른 날들은 정보 없음
@@ -103,6 +109,11 @@ def get_min_max_temperature(date_str):
     now = datetime.now() 
     base_date = now - timedelta(days=1) 
     base_time = "2300"      # 전날 23:00 발표자료 기준
+    
+    yesterday = now - timedelta(days=1)
+    
+    if date_str.replace("-", "") <= yesterday.strftime("%Y%m%d"):
+        return get_past_temperature(date_str)
         
     params = {
         "serviceKey": API_KEY,
@@ -132,3 +143,42 @@ def get_min_max_temperature(date_str):
         print(f"오류 발생: {e}")
         return None, None
     
+    
+# 과거 기온 가져오는 함수 (최저, 최고 기온)
+def get_past_temperature(date_str):
+    params = {
+        "serviceKey": API_PAST_KEY,
+        "numOfRows": 500,
+        "pageNo": 1,
+        "dataType": "JSON",
+        "dataCd": "ASOS",
+        "dateCd": "DAY",
+        "startDt": date_str.replace("-", ""),  # YYYYMMDD
+        "endDt": date_str.replace("-", ""),    # YYYYMMDD
+        "stnIds": "108",  # 서울역
+    }
+    
+    try:
+        response = requests.get(API_URL_PAST, params=params)
+        print(f"응답 상태 코드: {response.status_code}")
+        print(f"응답 내용: {response.text}")
+
+        if response.status_code == 200:
+            data = response.json()
+            if "response" in data and "body" in data["response"]:
+                items = data["response"]["body"]["items"]["item"]
+                if items:
+                    for item in items:
+                        return item["minTa"], item["maxTa"]
+                else:
+                    print("응답에 기온 정보가 없습니다.")
+                    return None, None
+            else:
+                print("API 응답 형식이 올바르지 않습니다.")
+                return None, None
+        else:
+            print(f"API 호출 실패: {response.status_code}")
+            return None, None
+    except Exception as e:
+        print(f"오류 발생: {e}")
+        return None, None

@@ -64,8 +64,8 @@ def get_weather_info(date):
     
     tmin, tmax = apiusing.get_min_max_temperature(date)
     
-    average = (tmin + tmax) / 2 if tmin and tmax else None
-    # 자정~05:00까지는 예보 데이터 없음 => 최고, 최저, 평균 안나옴
+    average = (float(tmin) + float(tmax)) / 2 if tmin is not None and tmax is not None else None
+
     if average is not None:
         return (
             f"{date} 날씨: {weather_condition}, 현재기온: {temperature}℃\n"
