@@ -1,4 +1,6 @@
 import pyrebase
+from datetime import datetime
+
 
 # Firebase 설정
 firebase_config = {
@@ -13,12 +15,26 @@ auth = firebase.auth()
 db = firebase.database()  # Realtime Database 사용
 
 # 회원가입
+# 회원가입 및 사용자 정보 저장
 def sign_up(email, password):
     try:
+        # Firebase Auth에 계정 생성
         user = auth.create_user_with_email_and_password(email, password)
+        user_id = user["localId"]  # 고유 사용자 ID
+        token = user["idToken"]    # 인증 토큰
+
+        # Realtime Database에 사용자 정보 저장
+        db.child("users").child(user_id).set({
+            "email": email,
+            "joined_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }, token=token)
+
+        print("회원가입 및 정보 저장 성공")
         return user
     except Exception as e:
         print("회원가입 실패:", e)
+        return None
+
         
         
 
