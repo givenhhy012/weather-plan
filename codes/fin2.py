@@ -7,6 +7,9 @@ from datetime import datetime
 import log_in
 import apiusing
 
+
+calendar.setfirstweekday(calendar.SUNDAY)
+
 # ----- 초기 설정 -----
 root = tk.Tk()
 root.title("Login and Calendar")
