@@ -56,10 +56,23 @@ def sign_up_calendar():
 
 # ----- 날씨 정보 -----
 def get_weather_info(date):
-    weather_conditions = ["맑음", "흐림", "비", "눈", "폭풍"]
-    temperature = apiusing.get_temperature()
-    condition = random.choice(weather_conditions)
-    return f"{date} 날씨: {condition}, {temperature}℃"
+    weather_condition = apiusing.get_weather_condition(date)
+    temperature = apiusing.get_temperature(date)
+    
+    tmin, tmax = apiusing.get_min_max_temperature(date)
+    
+    average = (tmin + tmax) / 2 if tmin and tmax else None
+    # 자정~05:00까지는 예보 데이터 없음 => 최고, 최저, 평균 안나옴
+    if average is not None:
+        return (
+            f"{date} 날씨: {weather_condition}, 현재기온: {temperature}℃\n"
+            f"최저기온: {tmin}℃, 최고기온: {tmax}℃, 평균기온: {average}℃"
+        )
+    else:
+        return (
+            f"{date} 날씨: {weather_condition}, 현재기온: {temperature}℃\n"
+            f"최저기온: {tmin}℃, 최고기온: {tmax}℃, 평균기온 정보 없음"
+        )
 
 # ----- 일정 및 날씨 창 -----
 def show_details(date):
@@ -75,7 +88,7 @@ def show_details(date):
 
     details_window = tk.Toplevel(root)
     details_window.title(f"{date} 상세 정보")
-    details_window.geometry("400x200")
+    details_window.geometry("800x400")
 
     weather_frame = tk.Frame(details_window, padx=10, pady=10)
     weather_frame.grid(row=0, column=0, sticky="nsew")
