@@ -95,9 +95,9 @@ def interpret_weather(pty, sky):
         elif sky == "4":
             return "흐림"
     return "정보 없음"
-
-# 최저기온
-def get_min_temperature(date_str):
+    
+    
+def get_min_max_temperature(date_str):
     now = datetime.now()
     
     params = {
@@ -116,42 +116,15 @@ def get_min_temperature(date_str):
     try:
         if response.status_code == 200:
             items = response.json()["response"]["body"]["items"]["item"]
-            tmin = None
-            for item in items:
-                if item["fcstDate"] == date_str.replace("-", ""):
-                    if item["category"] == "TMN":
-                        tmin = float(item["fcstValue"])
-            return tmin
-    except Exception as e:
-        print(f"오류 발생: {e}")
-        return None
-    
-# 최고기온
-def get_max_temperature(date_str):
-    now = datetime.now()
-    
-    params = {
-        "serviceKey": API_KEY,
-        "numOfRows": 1000,
-        "pageNo": 1,
-        "dataType": "JSON",
-        "base_date": now.strftime("%Y%m%d"),  # YYYYMMDD
-        "base_time": "0500",    # 05:00 발표자료 기준
-        "nx": NX,
-        "ny": NY,
-    }
-    
-    response = requests.get(API_URL_dangi, params=params)
-    
-    try:
-        if response.status_code == 200:
-            items = response.json()["response"]["body"]["items"]["item"]
-            tmax = None
+            tmin, tmax = None, None
             for item in items:
                 if item["fcstDate"] == date_str.replace("-", ""):
                     if item["category"] == "TMX":
                         tmax = float(item["fcstValue"])
-            return tmax
+                    elif item["category"] == "TMN":
+                        tmin = float(item["fcstValue"])
+            return tmin, tmax
     except Exception as e:
         print(f"오류 발생: {e}")
-        return None
+        return None, None
+    

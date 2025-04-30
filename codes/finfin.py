@@ -62,8 +62,7 @@ def get_weather_info(date):
     weather_condition = apiusing.get_weather_condition(date)
     temperature = apiusing.get_temperature(date)
     
-    tmin = apiusing.get_min_temperature(date)
-    tmax = apiusing.get_max_temperature(date)
+    tmin, tmax = apiusing.get_min_max_temperature(date)
     
     average = (tmin + tmax) / 2 if tmin and tmax else None
     # 자정~05:00까지는 예보 데이터 없음 => 최고, 최저, 평균 안나옴
