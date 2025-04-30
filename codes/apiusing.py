@@ -1,7 +1,7 @@
 import tkinter as tk
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # 기상청 API 키 (공공데이터포털에서 발급받은 디코딩된 키 입력)
 API_KEY = "c9+P8KoYVHHclcwNES4SC2Iq7MZW787CxlmV+J2aXwxh7sVV4sZ76OFiOKoVgN/HDVTt689y004GqWIRvWTFmQ=="
@@ -47,15 +47,17 @@ def get_temperature(date_str):
    
 # 날씨 정보 가져오는 함수(맑음, 비 등) => 3일뒤 까지만 예보가 존재
 def get_weather_condition(date_str):
-    now = datetime.now()    
+    now = datetime.now() 
+    base_date = now - timedelta(days=1) 
+    base_time = "2300"      # 전날 23:00 발표자료 기준
     
     params = {
         "serviceKey": API_KEY,
         "numOfRows": 1000,
         "pageNo": 1,
         "dataType": "JSON",
-        "base_date": now.strftime("%Y%m%d"),  # YYYYMMDD
-        "base_time": "0500",    # 05:00 발표자료 기준
+        "base_date": base_date.strftime("%Y%m%d"),  # YYYYMMDD
+        "base_time": base_time,    # 05:00 발표자료 기준
         "nx": NX,
         "ny": NY,
     }
@@ -98,15 +100,17 @@ def interpret_weather(pty, sky):
     
     
 def get_min_max_temperature(date_str):
-    now = datetime.now()
-    
+    now = datetime.now() 
+    base_date = now - timedelta(days=1) 
+    base_time = "2300"      # 전날 23:00 발표자료 기준
+        
     params = {
         "serviceKey": API_KEY,
         "numOfRows": 1000,
         "pageNo": 1,
         "dataType": "JSON",
-        "base_date": now.strftime("%Y%m%d"),  # YYYYMMDD
-        "base_time": "0500",    # 05:00 발표자료 기준
+        "base_date": base_date.strftime("%Y%m%d"),  # YYYYMMDD
+        "base_time": base_time,    
         "nx": NX,
         "ny": NY,
     }
