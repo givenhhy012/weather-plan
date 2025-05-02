@@ -62,8 +62,10 @@ def save_schedule(user, title, date):
         print("일정 저장 실패:", e)
 
 # 일정 조회
-def get_schedules(user_id):
+def get_schedules(user):
     try:
+        user_id = user["localId"]
+        token = user["idToken"]
         schedules = db.child("users").child(user_id).child("schedules").get()
         if schedules.val():
             print("===== 저장된 일정 =====")
@@ -73,6 +75,24 @@ def get_schedules(user_id):
             print("저장된 일정이 없습니다.")
     except Exception as e:
         print("일정 조회 실패:", e)
+        
+# 일정 불러오기
+def get_schedules_for_date(user, date_str):
+    try:
+        user_id = user["localId"]
+        token = user["idToken"]
+        schedules = db.child("users").child(user_id).child("schedules").get(token=token)
+        result = []
+        if schedules.each():
+            for schedule in schedules.each():
+                data = schedule.val()
+                if data.get("date") == date_str:
+                    result.append(data.get("title"))
+        return result
+    except Exception as e:
+        print("일정 불러오기 실패:", e)
+        return []
+
 
 """
 

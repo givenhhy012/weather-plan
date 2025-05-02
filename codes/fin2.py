@@ -11,11 +11,11 @@ import apiusing
 calendar.setfirstweekday(calendar.SUNDAY)
 
 # ----- 초기 설정 -----
+user = None
 root = tk.Tk()
 root.title("Login and Calendar")
 root.geometry("1280x720")
 
-schedule = {}  # 일정 저장용 딕셔너리
 now = datetime.now()
 current_year = now.year
 current_month = now.month
@@ -39,15 +39,17 @@ pw_entry.grid(row=1, column=1, padx=5, pady=5)
 
 # ----- 로그인/회원가입 기능 -----
 def sign_in_calendar():
+    global user
     email = id_entry.get()
     password = pw_entry.get()
     user = log_in.sign_in(email, password)
-    if user:
+    if user:   
         show_calendar()
     else:
         messagebox.showerror("Login Failed", "로그인 실패")
 
 def sign_up_calendar():
+    global user
     email = id_entry.get()
     password = pw_entry.get()
     user = log_in.sign_up(email, password)
@@ -65,6 +67,7 @@ def get_weather_info(date):
     tmin, tmax = apiusing.get_min_max_temperature(date)
     
     average = (float(tmin) + float(tmax)) / 2 if tmin is not None and tmax is not None else None
+    average = round(average, 1) if average is not None else None
 
     if average is not None:
         return (
@@ -79,26 +82,41 @@ def get_weather_info(date):
 
 # ----- 일정 및 날씨 창 -----
 def show_details(date):
+    global selected_date
+    selected_date = date
+    
     def save_schedule():
+        if user is None:
+            messagebox.showwarning("로그인 필요")
+            return
+            
         event = schedule_entry.get()
         if event:
-            schedule[date] = event
+            log_in.save_schedule(user, event, selected_date)
             update_calendar()
             messagebox.showinfo("Schedule Added", f"일정 저장: {date} - {event}")
             details_window.destroy()
         else:
             messagebox.showwarning("Empty Schedule", "일정을 입력해주세요.")
+            
+    def load_schedules():
+        """해당 날짜의 일정을 Firebase에서 불러와 목록에 출력"""
+        global user
+        user_id = user["localId"]
+        schedules = log_in.get_schedules_for_date(user, date)
+        for item in schedules:
+            schedule_listbox.insert(tk.END, item)
 
     details_window = tk.Toplevel(root)
     details_window.title(f"{date} 상세 정보")
-    details_window.geometry("800x400")
-
+    details_window.geometry("900x400")
+# 날씨 프레임
     weather_frame = tk.Frame(details_window, padx=10, pady=10)
     weather_frame.grid(row=0, column=0, sticky="nsew")
     weather_info = get_weather_info(date)
     weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_MEDIUM)
-    weather_label.pack()
-
+    weather_label.pack() 
+# 일정 입력 프레임
     schedule_frame = tk.Frame(details_window, padx=10, pady=10)
     schedule_frame.grid(row=0, column=1, sticky="nsew")
     schedule_label = tk.Label(schedule_frame, text="일정 추가:", font=FONT_MEDIUM)
@@ -107,6 +125,15 @@ def show_details(date):
     schedule_entry.pack(pady=5)
     save_button = tk.Button(schedule_frame, text="저장", command=save_schedule)
     save_button.pack(pady=5)
+# 일정 목록 프레임
+    schedule_list_frame = tk.Frame(details_window, padx=10, pady=10)
+    schedule_list_frame.grid(row=0, column=2, sticky="nsew")
+    list_label = tk.Label(schedule_list_frame, text="일정 목록", font=FONT_MEDIUM)
+    list_label.pack(pady=5)
+    schedule_listbox = tk.Listbox(schedule_list_frame, width=30, height=10, font=FONT_MEDIUM)
+    schedule_listbox.pack()
+# 일정 목록 초기 출력
+    load_schedules()
 
 # ----- 캘린더 업데이트 -----
 def update_calendar(*args):
@@ -130,9 +157,6 @@ def update_calendar(*args):
             if day != 0:
                 date = f"{year}-{month:02d}-{day:02d}"
                 text = f"{day}"
-                if date in schedule:
-                    num_stars = len(schedule[date].split(","))
-                    text += "★" * num_stars
                 fg_color = "red" if j == 0 else ("blue" if j == 6 else "black")
                 bg_color = "lightyellow" if date == f"{now.year}-{now.month:02d}-{now.day:02d}" else "white"
 

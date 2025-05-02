@@ -160,8 +160,6 @@ def get_past_temperature(date_str):
     
     try:
         response = requests.get(API_URL_PAST, params=params)
-        print(f"응답 상태 코드: {response.status_code}")
-        print(f"응답 내용: {response.text}")
 
         if response.status_code == 200:
             data = response.json()
