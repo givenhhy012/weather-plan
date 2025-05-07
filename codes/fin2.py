@@ -240,37 +240,26 @@ def show_region():
     login_frame.pack_forget()
     control_frame.pack_forget()
     calendar_frame.pack_forget()
-    
+
     regions_text = "서울,춘천,강릉,홍성,청주,태백,전주,대전,대구,울산,광주,창원,부산,제주"
     regions = regions_text.split(',')
-    
 
-    # 프레임 생성
     frame = tk.Frame(root)
     frame.pack(pady=20)
 
-    for i in range(3):
-        button = tk.Button(frame, text=regions[i], command=lambda region=regions[i]: set_region(region))
-        button.grid(row=3, column=i)
-    
-    # 두 번째 줄 (3개)
-    for i in range(3, 6):
-        button = tk.Button(frame, text=regions[i], command=lambda region=regions[i]: set_region(region))
-        button.grid(row=4, column=i - 3)
-    
-    # 세 번째 줄 (4개)
-    for i in range(6, 10):
-        button = tk.Button(frame, text=regions[i], command=lambda region=regions[i]: set_region(region))
-        button.grid(row=5, column=i - 6)
-    
-    # 네 번째 줄 (3개)
-    for i in range(10, 13):
-        button = tk.Button(frame, text=regions[i], command=lambda region=regions[i]: set_region(region))
-        button.grid(row=6, column=i - 10)
-    
-    # 다섯 번째 줄 (1개)
-    button = tk.Button(frame, text=regions[13], command=lambda region=regions[13]: set_region(region))
-    button.grid(row=7, column=0)
+    label = tk.Label(frame, text="지역을 선택하세요:", font=FONT_MEDIUM)
+    label.pack(pady=10)
+
+    region_combobox = ttk.Combobox(frame, values=regions, state="readonly", font=FONT_MEDIUM)
+    region_combobox.pack(pady=10)
+    region_combobox.set("서울")  # 기본값
+
+    def confirm_region():
+        selected = region_combobox.get()
+        set_region(selected)
+
+    confirm_button = tk.Button(frame, text="선택 완료", font=FONT_MEDIUM, command=confirm_region)
+    confirm_button.pack(pady=10)
 
     
     
