@@ -22,6 +22,38 @@ API_URL_dangi = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVil
 API_URL_PAST = "http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList"
 
 
+def set_nx_ny(region):
+    global NX, NY
+    if region == "서울":
+        NX, NY = 60, 127
+    elif region == "춘천":
+        NX, NY = 62, 128
+    elif region == "강릉":
+        NX, NY = 66, 130
+    elif region == "홍성":
+        NX, NY = 58, 126
+    elif region == "청주":
+        NX, NY = 63, 124
+    elif region == "태백":
+        NX, NY = 55, 128
+    elif region == "전주":
+        NX, NY = 56, 126
+    elif region == "대전":
+        NX, NY = 63, 126
+    elif region == "대구":
+        NX, NY = 62, 89
+    elif region == "울산":
+        NX, NY = 61, 81
+    elif region == "광주":
+        NX, NY = 56, 80
+    elif region == "창원":
+        NX, NY = 58, 77
+    elif region == "부산":
+        NX, NY = 60, 76
+    elif region == "제주":
+        NX, NY = 55, 38
+
+
 # 현재기온 가져오는 함수 => 오늘을 제외한 다른 날들은 정보 없음
 def get_temperature(date_str):
     now = datetime.now()
