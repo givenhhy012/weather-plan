@@ -6,6 +6,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import numpy as np
 
+#pandas (pip install pandas)
+#scikit-learn (pip install scikit-learn)
+
 # 🔵 Firebase 서비스 계정 인증
 cred = credentials.Certificate('weather-plan-firebase-adminsdk-fbsvc-b48459a49b.json')
 firebase_admin.initialize_app(cred, {
