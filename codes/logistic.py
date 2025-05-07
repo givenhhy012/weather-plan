@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import numpy as np
 
+#실행전 라이브러리 설치 필요
 #pandas (pip install pandas)
 #scikit-learn (pip install scikit-learn)
 
