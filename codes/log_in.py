@@ -34,10 +34,7 @@ def sign_up(email, password):
     except Exception as e:
         print("회원가입 실패:", e)
         return None
-
         
-        
-
 # 로그인
 def sign_in(email, password):    
     try:
@@ -93,32 +90,19 @@ def get_schedules_for_date(user, date_str):
         print("일정 불러오기 실패:", e)
         return []
 
+# 한달 일정 불러오기(성능 개선)
+def get_all_schedules(user):
+    """사용자의 전체 일정 불러오기"""
+    try:
+        user_id = user["localId"]
+        token = user["idToken"]
+        schedules = db.child("users").child(user_id).child("schedules").get(token=token)
+        result = []
+        if schedules.each():
+            for schedule in schedules.each():
+                result.append(schedule.val())
+        return result
+    except Exception as e:
+        print("전체 일정 불러오기 실패:", e)
+        return []
 
-"""
-
-# 실행 예제
-choice = input("1. 회원가입\n2. 로그인\n선택: ")
-
-email = input("이메일: ")
-password = input("비밀번호: ")
-
-if choice == "1":
-    sign_up(email, password)
-elif choice == "2":
-    user = sign_in(email, password)
-    if user:
-        user_id = user["localId"]  # UID 가져오기
-        while True:
-            print("User UID:", user["localId"])
-            action = input("1. 일정 추가\n2. 일정 조회\n3. 종료\n선택: ")
-            if action == "1":
-                title = input("일정 제목: ")
-                date = input("날짜 (YYYY-MM-DD): ")
-                save_schedule(user, title, date)
-            elif action == "2":
-                get_schedules(user_id)
-            elif action == "3":
-                break
-                
-                
-                """

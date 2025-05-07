@@ -11,6 +11,7 @@ import apiusing
 calendar.setfirstweekday(calendar.SUNDAY)
 
 # ----- 초기 설정 -----
+schedule_cache = {} # {"2025-05-01": True, "2024-05-03": True, ...}
 user = None
 root = tk.Tk()
 root.title("Login and Calendar")
@@ -67,7 +68,6 @@ def get_weather_info(date):
     tmin, tmax = apiusing.get_min_max_temperature(date)
     
     average = (float(tmin) + float(tmax)) / 2 if tmin is not None and tmax is not None else None
-    average = round(average, 1) if average is not None else None
 
     if average is not None:
         return (
@@ -92,6 +92,7 @@ def show_details(date):
             
         event = schedule_entry.get()
         if event:
+            schedule_cache[selected_date] = True
             log_in.save_schedule(user, event, selected_date)
             update_calendar()
             messagebox.showinfo("Schedule Added", f"일정 저장: {date} - {event}")
@@ -109,7 +110,7 @@ def show_details(date):
 
     details_window = tk.Toplevel(root)
     details_window.title(f"{date} 상세 정보")
-    details_window.geometry("900x400")
+    details_window.geometry("800x400")
 # 날씨 프레임
     weather_frame = tk.Frame(details_window, padx=10, pady=10)
     weather_frame.grid(row=0, column=0, sticky="nsew")
@@ -135,10 +136,34 @@ def show_details(date):
 # 일정 목록 초기 출력
     load_schedules()
 
+# ----- add cache function -------
+
+def load_monthly_schedule_cache(year, month):
+    global schedule_cache
+    if user is None:
+        return
+    schedule_cache = {}  # 이전 캐시 초기화
+    all_schedules = log_in.get_all_schedules(user)  # 한 번에 모든 일정 불러오기
+
+    for item in all_schedules:
+        date = item.get("date")
+        if date:
+            try:
+                d = datetime.strptime(date, "%Y-%m-%d")
+                if d.year == year and d.month == month:
+                    schedule_cache[date] = True
+            except:
+                continue
+
 # ----- 캘린더 업데이트 -----
 def update_calendar(*args):
     year = int(year_combobox.get())
     month = int(month_combobox.get())
+    month_label.config(text=f"{year}년 {month}월")
+    cal = calendar.monthcalendar(year, month)
+    
+    load_monthly_schedule_cache(year, month)
+    
     month_label.config(text=f"{year}년 {month}월")
     cal = calendar.monthcalendar(year, month)
 
@@ -159,15 +184,21 @@ def update_calendar(*args):
                 text = f"{day}"
                 fg_color = "red" if j == 0 else ("blue" if j == 6 else "black")
                 bg_color = "lightyellow" if date == f"{now.year}-{now.month:02d}-{now.day:02d}" else "white"
+                
+                if schedule_cache.get(date):
+                    display_text = f"{day}\n*"
+                else:
+                    display_text = f"{day}"
 
                 btn = tk.Button(
                     calendar_frame,
-                    text=text,
+                    text=display_text,
                     command=lambda d=date: show_details(d),
                     width=10,
                     height=4,
                     fg=fg_color,
-                    bg=bg_color
+                    bg=bg_color,
+                    font=FONT_MEDIUM
                 )
                 btn.grid(row=i+2, column=j, padx=2, pady=2)
 
