@@ -57,6 +57,10 @@ def set_nx_ny(region):
 # 현재기온 가져오는 함수 => 오늘을 제외한 다른 날들은 정보 없음
 def get_temperature(date_str):
     now = datetime.now()
+    
+    if date_str.replace("-", "") != now.strftime("%Y%m%d"):
+        return "기온 정보 없음"
+    
     base_time_hour = now.hour
     if now.minute < 40:
         base_time_hour -= 1
@@ -88,6 +92,10 @@ def get_weather_condition(date_str):
     now = datetime.now() 
     base_date = now - timedelta(days=1) 
     base_time = "2300"      # 전날 23:00 발표자료 기준
+    
+    if date_str.replace("-", "") <= base_date.strftime("%Y%m%d"):
+        return "날씨 정보 없음"
+    
     
     params = {
         "serviceKey": API_KEY,

@@ -1,10 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import calendar
-import random
 from datetime import datetime
-from tkinter import Canvas, PhotoImage
-
 
 import log_in
 import apiusing
@@ -76,7 +73,7 @@ def get_weather_info(date):
     if average is not None:
         return (
             f"{date} 날씨: {weather_condition}, 현재기온: {temperature}℃\n"
-            f"최저기온: {tmin}℃, 최고기온: {tmax}℃, 평균기온: {average}℃"
+            f"최저기온: {tmin}℃, 최고기온: {tmax}℃, 평균기온: {round(average,1)}℃"
         )
     else:
         return (
