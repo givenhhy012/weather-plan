@@ -7,6 +7,10 @@ import log_in
 import apiusing
 import recommed
 
+FONT_LARGE = ("맑은 고딕", 16)
+FONT_MEDIUM = ("맑은 고딕", 12)
+FONT_SMALL = ("맑은 고딕", 10)
+
 
 calendar.setfirstweekday(calendar.SUNDAY)
 
@@ -86,7 +90,7 @@ def get_weather_info(date):
 def show_details(date):
     global selected_date
     selected_date = date
-    
+
     def save_schedule():
         if user is None:
             messagebox.showwarning("로그인 필요")
@@ -101,75 +105,62 @@ def show_details(date):
             details_window.destroy()
         else:
             messagebox.showwarning("Empty Schedule", "일정을 입력해주세요.")
-            
+
     def load_schedules():
-        """해당 날짜의 일정을 Firebase에서 불러와 목록에 출력"""
         global user
-        user_id = user["localId"]
         schedules = log_in.get_schedules_for_date(user, date)
         for item in schedules:
             schedule_listbox.insert(tk.END, item)
-            
-    def show_recommendation_window():
-        recommendation_window = tk.Toplevel(root)
-        recommendation_window.title("옷차림 추천")
-        recommendation_window.geometry("800x400")
-        
-        # 레이블과 콤보박스 추가
-        choice_label = tk.Label(recommendation_window, text="< 오늘 입은 옷 >", font=FONT_MEDIUM)
-        choice_label.grid(row=2, column=0, padx=10, pady=10)
-        
-        outer_label = tk.Label(recommendation_window, text="아우터:", font=FONT_MEDIUM)
-        outer_label.grid(row=3, column=0, padx=10, pady=10)
-        outer_combobox = ttk.Combobox(recommendation_window, values=["패딩", "코트", "자켓", "없음"], state="readonly")
-        outer_combobox.grid(row=3, column=1, padx=3, pady=10)
 
-        top_label = tk.Label(recommendation_window, text="상의:", font=FONT_MEDIUM)
-        top_label.grid(row=3, column=2, padx=10, pady=10)
-        top_combobox = ttk.Combobox(recommendation_window, values=["기모", "후드", "롱슬리브브", "반팔"], state="readonly")
-        top_combobox.grid(row=3, column=3, padx=10, pady=10)
-
-        bottom_label = tk.Label(recommendation_window, text="하의:", font=FONT_MEDIUM)
-        bottom_label.grid(row=3, column=4, padx=10, pady=10)
-        bottom_combobox = ttk.Combobox(recommendation_window, values=["기모","청바지", "슬랙스", "반바지"], state="readonly")
-        bottom_combobox.grid(row=3, column=5, padx=10, pady=10)
-        
-        
-
-
+    # 새 창 생성
     details_window = tk.Toplevel(root)
     details_window.title(f"{date} 상세 정보")
     details_window.geometry("800x400")
-# 날씨 프레임
-    weather_frame = tk.Frame(details_window, padx=10, pady=10)
-    weather_frame.grid(row=0, column=0, sticky="nsew")
+
+    # 전체를 감싸는 프레임 (2열 구성)
+    content_frame = tk.Frame(details_window)
+    content_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    # ----- 왼쪽 프레임: 날씨 + 일정 추가 -----
+    left_frame = tk.Frame(content_frame)
+    left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
+    # 날씨 프레임 (LabelFrame으로 테두리 강조)
+    weather_frame = tk.LabelFrame(left_frame, text="날씨 정보", font=FONT_MEDIUM, bd=2, relief="groove", padx=10, pady=10)
+    weather_frame.pack(fill="x", pady=(0, 10))
+
     weather_info = get_weather_info(date)
-    weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_MEDIUM)
-    weather_label.pack() 
-    
-    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=recommed.show_frame )
-    recommend_button.pack(pady=5)
+    weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_SMALL, justify="left", anchor="w")
+    weather_label.pack(anchor="w")
 
+    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=recommed.show_frame)
+    recommend_button.pack(pady=5, anchor="w")
 
-# 일정 입력 프레임
-    schedule_frame = tk.Frame(details_window, padx=10, pady=10)
-    schedule_frame.grid(row=0, column=1, sticky="nsew")
-    schedule_label = tk.Label(schedule_frame, text="일정 추가:", font=FONT_MEDIUM)
-    schedule_label.pack(pady=5)
-    schedule_entry = tk.Entry(schedule_frame, width=20)
-    schedule_entry.pack(pady=5)
+    # 일정 추가 프레임
+    schedule_frame = tk.LabelFrame(left_frame, text="일정 추가", font=FONT_MEDIUM, bd=2, relief="groove", padx=10, pady=10)
+    schedule_frame.pack(fill="x")
+
+    schedule_label = tk.Label(schedule_frame, text="일정 내용을 입력하세요:", font=FONT_SMALL, anchor="w")
+    schedule_label.pack(anchor="w", pady=(0, 5))
+    schedule_entry = tk.Entry(schedule_frame, width=30)
+    schedule_entry.pack(anchor="w", pady=(0, 5))
     save_button = tk.Button(schedule_frame, text="저장", command=save_schedule)
-    save_button.pack(pady=5)
-# 일정 목록 프레임
-    schedule_list_frame = tk.Frame(details_window, padx=10, pady=10)
-    schedule_list_frame.grid(row=0, column=2, sticky="nsew")
-    list_label = tk.Label(schedule_list_frame, text="일정 목록", font=FONT_MEDIUM)
-    list_label.pack(pady=5)
-    schedule_listbox = tk.Listbox(schedule_list_frame, width=30, height=10, font=FONT_MEDIUM)
+    save_button.pack(anchor="w", pady=(0, 5))
+
+    # ----- 오른쪽 프레임: 일정 목록 -----
+    schedule_list_frame = tk.LabelFrame(content_frame, text="일정 목록", font=FONT_MEDIUM, bd=2, relief="groove", padx=10, pady=10)
+    schedule_list_frame.grid(row=0, column=1, sticky="nsew")
+
+    schedule_listbox = tk.Listbox(schedule_list_frame, width=30, height=18, font=FONT_MEDIUM)
     schedule_listbox.pack()
-# 일정 목록 초기 출력
+
+    # 일정 목록 불러오기
     load_schedules()
 
+    # 열 비율 설정
+    content_frame.grid_columnconfigure(0, weight=1)
+    content_frame.grid_columnconfigure(1, weight=1)
+    
 # ----- add cache function -------
 
 def load_monthly_schedule_cache(year, month):
