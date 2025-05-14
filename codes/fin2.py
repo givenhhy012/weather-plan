@@ -5,7 +5,7 @@ from datetime import datetime
 
 import log_in
 import apiusing
-import main
+import recommed
 
 
 calendar.setfirstweekday(calendar.SUNDAY)
@@ -147,7 +147,7 @@ def show_details(date):
     weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_MEDIUM)
     weather_label.pack() 
     
-    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=main.show_frame )
+    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=recommed.show_frame )
     recommend_button.pack(pady=5)
 
 
