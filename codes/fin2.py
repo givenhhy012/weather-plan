@@ -5,6 +5,7 @@ from datetime import datetime
 
 import log_in
 import apiusing
+import main
 
 
 calendar.setfirstweekday(calendar.SUNDAY)
@@ -108,6 +109,33 @@ def show_details(date):
         schedules = log_in.get_schedules_for_date(user, date)
         for item in schedules:
             schedule_listbox.insert(tk.END, item)
+            
+    def show_recommendation_window():
+        recommendation_window = tk.Toplevel(root)
+        recommendation_window.title("옷차림 추천")
+        recommendation_window.geometry("800x400")
+        
+        # 레이블과 콤보박스 추가
+        choice_label = tk.Label(recommendation_window, text="< 오늘 입은 옷 >", font=FONT_MEDIUM)
+        choice_label.grid(row=2, column=0, padx=10, pady=10)
+        
+        outer_label = tk.Label(recommendation_window, text="아우터:", font=FONT_MEDIUM)
+        outer_label.grid(row=3, column=0, padx=10, pady=10)
+        outer_combobox = ttk.Combobox(recommendation_window, values=["패딩", "코트", "자켓", "없음"], state="readonly")
+        outer_combobox.grid(row=3, column=1, padx=3, pady=10)
+
+        top_label = tk.Label(recommendation_window, text="상의:", font=FONT_MEDIUM)
+        top_label.grid(row=3, column=2, padx=10, pady=10)
+        top_combobox = ttk.Combobox(recommendation_window, values=["기모", "후드", "롱슬리브브", "반팔"], state="readonly")
+        top_combobox.grid(row=3, column=3, padx=10, pady=10)
+
+        bottom_label = tk.Label(recommendation_window, text="하의:", font=FONT_MEDIUM)
+        bottom_label.grid(row=3, column=4, padx=10, pady=10)
+        bottom_combobox = ttk.Combobox(recommendation_window, values=["기모","청바지", "슬랙스", "반바지"], state="readonly")
+        bottom_combobox.grid(row=3, column=5, padx=10, pady=10)
+        
+        
+
 
     details_window = tk.Toplevel(root)
     details_window.title(f"{date} 상세 정보")
@@ -118,6 +146,11 @@ def show_details(date):
     weather_info = get_weather_info(date)
     weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_MEDIUM)
     weather_label.pack() 
+    
+    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=main.show_frame )
+    recommend_button.pack(pady=5)
+
+
 # 일정 입력 프레임
     schedule_frame = tk.Frame(details_window, padx=10, pady=10)
     schedule_frame.grid(row=0, column=1, sticky="nsew")
