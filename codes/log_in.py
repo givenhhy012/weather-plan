@@ -26,8 +26,12 @@ def sign_up(email, password):
         # Realtime Database에 사용자 정보 저장
         db.child("users").child(user_id).set({
             "email": email,
-            "joined_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }, token=token)
+            "joined_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "actual_records": { "record_count": 0 },
+            "cloth": initial_template
+            }, token=token)
+        
+        
 
         print("회원가입 및 정보 저장 성공")
         return user
@@ -106,3 +110,123 @@ def get_all_schedules(user):
         print("전체 일정 불러오기 실패:", e)
         return []
 
+
+
+initial_template = {
+    "outer": {
+        "<5": {
+            "padding": 0,
+            "none": 0,
+            "coat": 0,
+            "jacket": 0
+        },
+        "<10": {
+            "padding": 0,
+            "none": 0,
+            "coat": 0,
+            "jacket": 0
+        },
+        "<15": {
+            "padding": 0,
+            "none": 0,
+            "coat": 0,
+            "jacket": 0
+        },
+        "<20": {
+            "padding": 0,
+            "none": 0,
+            "coat": 0,
+            "jacket": 0
+        },
+        "<25": {
+            "padding": 0,
+            "none": 0,
+            "coat": 0,
+            "jacket": 0
+        },
+        ">=25": {
+            "padding": 0,
+            "none": 0,
+            "coat": 0,
+            "jacket": 0
+        }
+    },
+    
+    "top": {
+        "<5": {
+            "brushed": 0,
+            "hoodie": 0,
+            "long-sleeve": 0,
+            "t-shirts": 0
+        },
+        "<10": {
+            "brushed": 0,
+            "hoodie": 0,
+            "long-sleeve": 0,
+            "t-shirts": 0
+        },
+        "<15": {
+            "brushed": 0,
+            "hoodie": 0,
+            "long-sleeve": 0,
+            "t-shirts": 0
+        },
+        "<20": {
+            "brushed": 0,
+            "hoodie": 0,
+            "long-sleeve": 0,
+            "t-shirts": 0
+        },
+        "<25": {
+            "brushed": 0,
+            "hoodie": 0,
+            "long-sleeve": 0,
+            "t-shirts": 0
+        },
+        ">=25": {
+            "brushed": 0,
+            "hoodie": 0,
+            "long-sleeve": 0,
+            "t-shirts": 0
+        }
+    },
+    
+    "pants": {
+        "<5": {
+            "brushed": 0,
+            "jean": 0,
+            "slacks": 0,
+            "short": 0
+        },
+        "<10": {
+            "brushed": 0,
+            "jean": 0,
+            "slacks": 0,
+            "short": 0
+        },
+        "<15": {
+            "brushed": 0,
+            "jean": 0,
+            "slacks": 0,
+            "short": 0
+        },
+        "<20": {
+            "brushed": 0,
+            "jean": 0,
+            "slacks": 0,
+            "short": 0
+        },
+        "<25": {
+            "brushed": 0,
+            "jean": 0,
+            "slacks": 0,
+            "short": 0
+        },
+        ">=25": {
+            "brushed": 0,
+            "jean": 0,
+            "slacks": 0,
+            "short": 0
+        }
+    }
+}

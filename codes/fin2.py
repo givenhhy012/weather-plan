@@ -17,6 +17,7 @@ calendar.setfirstweekday(calendar.SUNDAY)
 # ----- 초기 설정 -----
 schedule_cache = {} # {"2025-05-01": True, "2024-05-03": True, ...}
 user = None
+average_temp = None
 root = tk.Tk()
 root.title("Login and Calendar")
 root.geometry("1280x720")
@@ -74,11 +75,14 @@ def get_weather_info(date):
     tmin, tmax = apiusing.get_min_max_temperature(date)
     
     average = (float(tmin) + float(tmax)) / 2 if tmin is not None and tmax is not None else None
+    
+    global average_temp
+    average_temp = round(average,1)
 
     if average is not None:
         return (
             f"{date} 날씨: {weather_condition}, 현재기온: {temperature}℃\n"
-            f"최저기온: {tmin}℃, 최고기온: {tmax}℃, 평균기온: {round(average,1)}℃"
+            f"최저기온: {tmin}℃, 최고기온: {tmax}℃, 평균기온: {average_temp}℃"
         )
     else:
         return (
@@ -88,6 +92,7 @@ def get_weather_info(date):
 
 # ----- 일정 및 날씨 창 -----
 def show_details(date):
+    
     global selected_date
     selected_date = date
 
@@ -133,7 +138,7 @@ def show_details(date):
     weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_SMALL, justify="left", anchor="w")
     weather_label.pack(anchor="w")
 
-    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=recommed.show_frame)
+    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=lambda: recommed.show_frame(user, average_temp))
     recommend_button.pack(pady=5, anchor="w")
 
     # 일정 추가 프레임

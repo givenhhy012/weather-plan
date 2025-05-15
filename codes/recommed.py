@@ -1,14 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from datetime import datetime
+import logistic
 
-# 가정: 로그인은 이미 되어 있고 user 정보는 아래와 같이 주어진다
-user = {
-    "localId": "샘플UID",
-    "idToken": "샘플토큰"
-}
 
 def recommend_clothes(temp):
+    if temp == None:
+        return "기온 정보가 없습니다."
+    
     if temp >= 28:
         return "반팔, 반바지 추천"
     elif 23 <= temp < 28:
@@ -22,13 +21,13 @@ def recommend_clothes(temp):
     else:
         return "패딩, 두꺼운 옷 추천"
 
-def show_frame():
+def show_frame(user, temperature):
     # GUI 구성
     root = tk.Tk()
     root.title("날씨 일정 관리")
     root.geometry("400x500")
 
-    temp_label = tk.Label(root, text="오늘의 최고기온: 13°C", font=("Arial", 14))
+    temp_label = tk.Label(root, text=f"오늘의 평균기온: {temperature}°C", font=("Arial", 14))
     temp_label.pack(pady=10)
 
     # 지역 변수로 선언
@@ -61,10 +60,25 @@ def show_frame():
         dropdown_frame.pack(pady=10)
 
     def show_recommendation():
-        temp = 13  # 예시 온도
-        result = recommend_clothes(temp)
-        result_label.config(text=f"추천 옷차림: {result}")
-        record_btn.pack(pady=5)  # "오늘의 옷 기록하기" 버튼 보이기
+    
+        if logistic.get_max_index(user) is None:
+            messagebox.showerror("오류", "사용자 actual_record가 생성되어있지 않음")
+            return
+        else:
+            if (logistic.get_max_index(user) < 5):
+                print("=== 🔹 단순 추천 시스템 ===")
+                outer, top, pants = logistic.recommendation_simple(temperature)
+            else:
+                print("=== 🔹 머신러닝 추천 시스템 ===")
+                outer, top, pants = logistic.recommendation_machine(user, temperature)
+            
+            print(f"\n[기온: {temperature}°C]")
+            print(f"👚 아우터 추천: {outer}")
+            print(f"👕 상의 추천: {top}")
+            print(f"👖 하의 추천: {pants}")
+        
+            result_label.config(text=f"아우터 추천: {outer}, 상의 추천: {top}, 하의 추천: {pants}")
+            record_btn.pack(pady=5)  # "오늘의 옷 기록하기" 버튼 보이기
 
     def save_clothing():
         outer = outer_var.get()
@@ -82,8 +96,8 @@ def show_frame():
     save_btn = tk.Button(dropdown_frame, text="저장하기", command=save_clothing)
     save_btn.pack(pady=10)
 
-    root.mainloop()
+    # root.mainloop()
 
 # 외부에서 호출할 수 있도록 설정
-if __name__ == "__main__":
-    show_frame()
+# if __name__ == "__main__":
+#     show_frame()
