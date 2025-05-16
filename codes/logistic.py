@@ -7,6 +7,34 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 
+# 알고리즘 설명!!
+
+# 사용전 라이브러리 설치 필요
+# pip install pyrebase4
+# pip install pandas
+# pip install scikit-learn
+
+
+# <알고리즘 로직>
+# 1. actual_records(사용자가 실제로 어떤 옷을 입었는지 기록)의 개수가 5개 이상
+# 2. cloth/outer, top, pants/(해당 기온 구간) 에서 2번 이상 입은 옷 종류가 2개 이상
+# 위 조건을 모두 만족해야 머신러닝 추천 시스템 사용
+# 아니면 단순 추천 시스템 사용
+
+# ===단순 추천 시스템===
+# (사용자가 해당 옷을 입은 비율 * 가중치1) + (다른 사람들이 해당 옷을 입은 비율 * 가중치2) 로 계산하여 가장 높은 값을 추천으로
+# 가중치는 사용자가 해당 옷을 입은 횟수에 따라 다르게 설정
+# 사용자가 해당 기온 구간에서 전체 옷을 입은 횟수가 7회 미만 => 가중치1 = 사용자가 입은 횟수 / 10
+# 7회 이상부터는 가중치1 = 0.6
+# 가중치2 = (1 - 가중치1)
+# 예시: 사용자가 전체 옷 입은 횟수가 3이면, 가중치1 = 0.3, 가중치2 = 0.7 => 사용자 데이터가 30%, 공용 데이터가 70% 반영됨
+
+# ===머신러닝 추천 시스템===
+# 1. 사용자의 actual_records를 기반으로 머신러닝 모델을 학습
+# 2. 새로운 예측에 사용할 feature는 평균 기온, 해당 기온 구간에서의 옷 입은 비율(사용자, 공용 데이터) => 세가지
+
+
+
 # 🔵 Firebase 설정
 firebase_config = {
     "apiKey": "AIzaSyDDoeGp8-kJrX68624sgfIkzscKO7aHg6k",
@@ -175,7 +203,7 @@ def predict_outfits(model, temperature, public_data, user_data, feature_names, e
     return predicted_cloth
 
         
-
+# 머신러닝 추천 시스템
 def recommendation_machine(user, temp):
     
     print("=== 🔹 Firebase 데이터 로딩 중... ===")
@@ -272,23 +300,6 @@ def get_max_index(user):
         print(f"오류 발생: {e}")
         return None
     
-    
-# 다른 사람들이 가장 많이 입은 옷을 반환하는 함수
-def get_most_common_clothes(data, temperature):
-    # 🔵 기온 구간 찾기
-    temp_range = find_temp_range(temperature)
-    
-    # 🔵 해당 기온 구간의 옷 입은 횟수 가져오기
-    outer_count = data['outer'].get(temp_range, {})
-    top_count = data['top'].get(temp_range, {})
-    pants_count = data['pants'].get(temp_range, {})
-
-    # 🔵 가장 많이 입은 옷 찾기
-    most_common_outer = max(outer_count, key=outer_count.get)
-    most_common_top = max(top_count, key=top_count.get)
-    most_common_pants = max(pants_count, key=pants_count.get)
-
-    return most_common_outer, most_common_top, most_common_pants
 
 
 # 머신러닝 돌리지 않고 단순 추천 시스템
