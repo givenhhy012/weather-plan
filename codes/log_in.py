@@ -156,38 +156,38 @@ initial_template = {
         "<5": {
             "brushed": 0,
             "hoodie": 0,
-            "long-sleeve": 0,
-            "t-shirts": 0
+            "longsleeve": 0,
+            "tshirt": 0
         },
         "<10": {
             "brushed": 0,
             "hoodie": 0,
-            "long-sleeve": 0,
-            "t-shirts": 0
+            "longsleeve": 0,
+            "tshirt": 0
         },
         "<15": {
             "brushed": 0,
             "hoodie": 0,
-            "long-sleeve": 0,
-            "t-shirts": 0
+            "longsleeve": 0,
+            "tshirt": 0
         },
         "<20": {
             "brushed": 0,
             "hoodie": 0,
-            "long-sleeve": 0,
-            "t-shirts": 0
+            "longsleeve": 0,
+            "tshirt": 0
         },
         "<25": {
             "brushed": 0,
             "hoodie": 0,
-            "long-sleeve": 0,
-            "t-shirts": 0
+            "longsleeve": 0,
+            "tshirt": 0
         },
         ">=25": {
             "brushed": 0,
             "hoodie": 0,
-            "long-sleeve": 0,
-            "t-shirts": 0
+            "longsleeve": 0,
+            "tshirt": 0
         }
     },
     

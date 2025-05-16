@@ -77,7 +77,9 @@ def get_weather_info(date):
     average = (float(tmin) + float(tmax)) / 2 if tmin is not None and tmax is not None else None
     
     global average_temp
-    average_temp = round(average,1)
+    
+    if average is not None:
+        average_temp = round(average,1)
 
     if average is not None:
         return (
@@ -138,7 +140,7 @@ def show_details(date):
     weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_SMALL, justify="left", anchor="w")
     weather_label.pack(anchor="w")
 
-    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=lambda: recommed.show_frame(user, average_temp))
+    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=lambda: recommed.show_frame(user, average_temp, date))
     recommend_button.pack(pady=5, anchor="w")
 
     # 일정 추가 프레임

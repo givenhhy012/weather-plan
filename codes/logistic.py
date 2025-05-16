@@ -29,8 +29,8 @@ FEATURE_NAMES_OUTER = [
 
 FEATURE_NAMES_TOP = [
     'temperature',
-    'others_per_brushed', 'others_per_hoodie', 'others_per_shirt', 'others_per_tshirt',
-    'users_per_brushed', 'users_per_hoodie', 'users_per_shirt', 'users_per_tshirt'
+    'others_per_brushed', 'others_per_hoodie', 'others_per_longsleeve', 'others_per_tshirt',
+    'users_per_brushed', 'users_per_hoodie', 'users_per_longsleeve', 'users_per_tshirt'
 ]
 
 FEATURE_NAMES_PANTS = [
@@ -249,3 +249,122 @@ def recommendation_simple(temp):
     
     return get_most_common_clothes(public_data, temp)
 
+
+# actual_record 기록 + cloth 횟수 업데이트
+def save_actual_record(user, date_str, temperature, outer, top, pants):
+    temp_range = find_temp_range(temperature)
+
+    user_id = user["localId"]  # 현재 로그인한 사용자의 UID
+    token = user["idToken"]  # 인증 토큰
+    
+    public_outer_data = db.child("public/cloth/outer").get(token=token).val()
+    public_top_data = db.child("public/cloth/top").get(token=token).val()
+    public_pants_data = db.child("public/cloth/pants").get(token=token).val()
+    
+    public_outer_ratio = process_cloth_data(public_outer_data, temp_range)
+    public_top_ratio = process_cloth_data(public_top_data, temp_range)
+    public_pants_ratio = process_cloth_data(public_pants_data, temp_range)
+    
+    user_outer_data = db.child("users").child(user_id).child("cloth/outer").get(token=token).val()
+    user_top_data = db.child("users").child(user_id).child("cloth/top").get(token=token).val()
+    user_pants_data = db.child("users").child(user_id).child("cloth/pants").get(token=token).val()
+    
+    user_outer_ratio = process_cloth_data(user_outer_data, temp_range)
+    user_top_ratio = process_cloth_data(user_top_data, temp_range)
+    user_pants_ratio = process_cloth_data(user_pants_data, temp_range)
+    
+    outer_template = {
+        "actual_choice": outer,
+        "others_per_coat": round(public_outer_ratio.get("coat", 0), 2),
+        "others_per_jacket": round(public_outer_ratio.get("jacket", 0), 2),
+        "others_per_none": round(public_outer_ratio.get("none", 0), 2),
+        "others_per_padding": round(public_outer_ratio.get("padding", 0), 2),
+        "users_per_coat": round(user_outer_ratio.get("coat", 0), 2),
+        "users_per_jacket": round(user_outer_ratio.get("jacket", 0), 2),
+        "users_per_none": round(user_outer_ratio.get("none", 0), 2),
+        "users_per_padding": round(user_outer_ratio.get("padding", 0), 2)
+    }
+
+    top_template = {
+        "actual_choice": top,
+        "others_per_brushed": round(public_top_ratio.get("brushed", 0), 2),
+        "others_per_hoodie": round(public_top_ratio.get("hoodie", 0), 2),
+        "others_per_longsleeve": round(public_top_ratio.get("longsleeve", 0), 2),
+        "others_per_tshirt": round(public_top_ratio.get("tshirt", 0), 2),
+        "users_per_brushed": round(user_top_ratio.get("brushed", 0), 2),
+        "users_per_hoodie": round(user_top_ratio.get("hoodie", 0), 2),
+        "users_per_longsleeve": round(user_top_ratio.get("longsleeve", 0), 2),
+        "users_per_tshirt": round(user_top_ratio.get("tshirt", 0), 2)
+    }
+
+    pants_template = {
+        "actual_choice": pants,
+        "others_per_brushed": round(public_pants_ratio.get("brushed", 0), 2),
+        "others_per_jean": round(public_pants_ratio.get("jean", 0), 2),
+        "others_per_slacks": round(public_pants_ratio.get("slacks", 0), 2),
+        "others_per_short": round(public_pants_ratio.get("short", 0), 2),
+        "users_per_brushed": round(user_pants_ratio.get("brushed", 0), 2),
+        "users_per_jean": round(user_pants_ratio.get("jean", 0), 2),
+        "users_per_slacks": round(user_pants_ratio.get("slacks", 0), 2),
+        "users_per_short": round(user_pants_ratio.get("short", 0), 2)
+    }
+
+    
+    if db.child("users").child(user_id).child('actual_records').child(date_str.replace("-","")).get(token=token).val() is None:
+        record_count = db.child("users").child(user_id).child('actual_records/record_count').get(token=token).val()
+        print(f"기록 개수: {record_count}")
+    
+        db.child("users").child(user_id).child('actual_records').child('record_count').set(record_count + 1, token=token)
+    
+    # 🔵 Firebase에 데이터 저장
+    db.child("users").child(user_id).child('actual_records').child(date_str.replace("-","")).set({
+        "temperature": temperature,
+        "outer": outer_template,
+        "top": top_template,
+        "pants": pants_template,
+    }, token=token)
+    
+    print("기록 저장 완료")
+    
+    
+    # cloth 횟수 업데이트 하는 부분
+    
+    #user
+    try:
+        # outer
+        user_outer_path = f"users/{user_id}/cloth/outer/{temp_range}/{outer}"
+        user_outer_count = db.child(user_outer_path).get(token=token).val()
+        db.child(user_outer_path).set(user_outer_count + 1, token=token)
+        # top
+        user_top_path = f"users/{user_id}/cloth/top/{temp_range}/{top}"
+        user_top_count = db.child(user_top_path).get(token=token).val()
+        db.child(user_top_path).set(user_top_count + 1, token=token)
+        # pants
+        user_pants_path = f"users/{user_id}/cloth/pants/{temp_range}/{pants}"
+        user_pants_count = db.child(user_pants_path).get(token=token).val()
+        db.child(user_pants_path).set(user_pants_count + 1, token=token)
+        
+        print("유저 옷 횟수 업데이트 완료")
+    except Exception as e:
+        print(f"유저 옷 횟수 업데이트 실패: {e}")
+    
+    
+    # public
+    try:
+        # outer
+        public_outer_path = f"public/cloth/outer/{temp_range}/{outer}"
+        public_outer_count = db.child(public_outer_path).get(token=token).val()
+        db.child(public_outer_path).set(public_outer_count + 1, token=token)
+        # top
+        public_top_path = f"public/cloth/top/{temp_range}/{top}"
+        public_top_count = db.child(public_top_path).get(token=token).val()
+        db.child(public_top_path).set(public_top_count + 1, token=token)
+        # pants
+        public_pants_path = f"public/cloth/pants/{temp_range}/{pants}"
+        public_pants_count = db.child(public_pants_path).get(token=token).val()
+        db.child(public_pants_path).set(public_pants_count + 1, token=token)
+        
+        print("공용 옷 횟수 업데이트 완료")
+    except Exception as e:
+        print(f"공용 옷 횟수 업데이트 실패: {e}")
+        
