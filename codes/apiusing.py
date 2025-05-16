@@ -12,6 +12,9 @@ API_PAST_KEY = "c9+P8KoYVHHclcwNES4SC2Iq7MZW787CxlmV+J2aXwxh7sVV4sZ76OFiOKoVgN/H
 # 격자 좌표 (예: 서울 종로구 -> nx=60, ny=127)
 NX, NY = 60, 127
 
+# 관측소 좌표 (과거 기온을 가져오기 위한 관측소 ID)
+StnIds = "108"  # 기본값은 서울역
+
 # 초단기실황 API URL
 API_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
 
@@ -22,6 +25,7 @@ API_URL_dangi = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVil
 API_URL_PAST = "http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList"
 
 
+# 지역별 좌표 설정
 def set_nx_ny(region):
     global NX, NY
     if region == "서울":
@@ -52,6 +56,41 @@ def set_nx_ny(region):
         NX, NY = 60, 76
     elif region == "제주":
         NX, NY = 55, 38
+        
+        
+# 지역별 관측소 ID 설정 (과거 기온을 가져오기 위한 관측소 ID)
+def set_stnIds(region):
+    global StnIds
+    
+    if region == "서울":
+        StnIds = "108"
+    elif region == "춘천":
+        StnIds = "105"
+    elif region == "강릉":
+        StnIds = "107"
+    elif region == "홍성":
+        StnIds = "131"
+    elif region == "청주":
+        StnIds = "134"
+    elif region == "태백":
+        StnIds = "119"
+    elif region == "전주":
+        StnIds = "157"
+    elif region == "대전":
+        StnIds = "133"
+    elif region == "대구":
+        StnIds = "143"
+    elif region == "울산":
+        StnIds = "159"
+    elif region == "광주":
+        StnIds = "156"
+    elif region == "창원":
+        StnIds = "162"
+    elif region == "부산":
+        StnIds = "159"
+    elif region == "제주":
+        StnIds = "184"
+
 
 
 # 현재기온 가져오는 함수 => 오늘을 제외한 다른 날들은 정보 없음
@@ -195,7 +234,7 @@ def get_past_temperature(date_str):
         "dateCd": "DAY",
         "startDt": date_str.replace("-", ""),  # YYYYMMDD
         "endDt": date_str.replace("-", ""),    # YYYYMMDD
-        "stnIds": "108",  # 서울역
+        "stnIds": StnIds,
     }
     
     try:
