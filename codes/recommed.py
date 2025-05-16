@@ -4,23 +4,6 @@ from datetime import datetime
 import logistic
 
 
-def recommend_clothes(temp):
-    if temp == None:
-        return "기온 정보가 없습니다."
-    
-    if temp >= 28:
-        return "반팔, 반바지 추천"
-    elif 23 <= temp < 28:
-        return "얇은 셔츠, 반바지 추천"
-    elif 17 <= temp < 23:
-        return "긴팔, 얇은 가디건 추천"
-    elif 12 <= temp < 17:
-        return "자켓, 니트 추천"
-    elif 9 <= temp < 12:
-        return "코트, 기모 후드 추천"
-    else:
-        return "패딩, 두꺼운 옷 추천"
-
 def show_frame(user, temperature, date_str):
     # GUI 구성
     root = tk.Tk()
@@ -62,6 +45,9 @@ def show_frame(user, temperature, date_str):
         dropdown_frame.pack(pady=10)
 
     def show_recommendation():
+        result_label.config(text="옷 추천 알고리즘 실행 중...")
+        result_label.update_idletasks() 
+        
         if temperature is None:
             messagebox.showerror("오류", "기온 정보가 없습니다.")
             return
@@ -70,11 +56,15 @@ def show_frame(user, temperature, date_str):
             messagebox.showerror("오류", "사용자 actual_record가 생성되어있지 않음")
             return
         else:
-            if (logistic.get_max_index(user) < 5):
+            if (logistic.check_enough_data(user, temperature) == False):
                 print("=== 🔹 단순 추천 시스템 ===")
-                outer, top, pants = logistic.recommendation_simple(temperature)
+                result_label.config(text="단순 추천 시스템 실행 중...")
+                result_label.update_idletasks()
+                outer, top, pants = logistic.recommendation_simple(user, temperature)
             else:
                 print("=== 🔹 머신러닝 추천 시스템 ===")
+                result_label.config(text="머신러닝 추천 시스템 실행 중...")
+                result_label.update_idletasks()
                 outer, top, pants = logistic.recommendation_machine(user, temperature)
             
             print(f"\n[기온: {temperature}°C]")
@@ -86,6 +76,9 @@ def show_frame(user, temperature, date_str):
             record_btn.pack(pady=5)  # "오늘의 옷 기록하기" 버튼 보이기
 
     def save_clothing():
+        save_label.pack(pady=10)
+        save_label.update_idletasks()  # UI 업데이트
+        
         outer = translate_choice(outer_menu.get())
         top = translate_choice(top_menu.get())
         bottom = translate_choice(bottom_menu.get())
@@ -108,6 +101,9 @@ def show_frame(user, temperature, date_str):
             messagebox.showinfo("저장 완료", f"오늘의 옷차림이 저장되었습니다.\n아우터: {outer}, 상의: {top}, 하의: {bottom}")
         except Exception as e:
             messagebox.showerror("오류", f"저장 실패: {e}")
+            
+        save_label.config(text="옷 차림 저장 완료!")
+        save_label.update_idletasks()
 
     # ✅ 함수가 정의된 후 버튼을 생성합니다.
     recommend_btn = tk.Button(root, text="옷차림 추천", command=show_recommendation)
@@ -119,8 +115,11 @@ def show_frame(user, temperature, date_str):
 
     save_btn = tk.Button(dropdown_frame, text="저장하기", command=lambda: save_clothing())
     save_btn.pack(pady=10)
+    
+    save_label = tk.Label(root, text="옷 차림 저장 중...", font=("Arial", 12))
 
 
+# 서버에 저장을 위한 변환 함수
 def translate_choice(choice):
     if choice == "패딩":
         return "padding"

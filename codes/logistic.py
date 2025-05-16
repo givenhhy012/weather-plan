@@ -201,6 +201,57 @@ def recommendation_machine(user, temp):
     return outer, top, pants
 
 
+# 머신러닝 돌릴 수 있는지 확인하는 함수
+def check_enough_data(user, temperature):
+    # 🔵 사용자의 기록 개수 확인
+    if (get_max_index(user) < 5):
+        print("사용자 기록이 충분하지 않습니다.")
+        return False
+    
+    user_id = user["localId"]  # 현재 로그인한 사용자의 UID
+    token = user["idToken"]  # 인증 토큰
+    
+    # 🔵 Firebase에서 사용자자 기록(기온 구간별 옷 입은 횟수) 가져오기
+    user_outer_data = db.child("users").child(user_id).child("cloth/outer").get(token=token).val()
+    user_top_data = db.child("users").child(user_id).child("cloth/top").get(token=token).val()
+    user_pants_data = db.child("users").child(user_id).child("cloth/pants").get(token=token).val()
+    
+    # 🔵 기온 구간 찾기
+    temp_range = find_temp_range(temperature)
+    
+    # 🔵 해당 기온 구간의 옷 입은 횟수 가져오기
+    outer_count = user_outer_data.get(temp_range, {})
+    top_count = user_top_data.get(temp_range, {})
+    pants_count = user_pants_data.get(temp_range, {})
+    
+    # 두개 이상의 클래스가 2이상인 경우 True
+    outer_valid = is_valid_category(outer_count)
+    top_valid = is_valid_category(top_count)
+    pants_valid = is_valid_category(pants_count)
+
+
+
+    # 🔵 최종 판단:
+    # 1. actual_record의 개수가 5개 이상
+    # 2. 해당 기온구간에서 outer, top, pants 카테고리에서 각각 2개 이상의 클래스가 2이상
+    # 위 조건을 모두 만족해야 true => 머신러닝 추천 시스템 사용 가능
+    if(outer_valid and top_valid and pants_valid):
+        return True
+    else:
+        print("충분한 데이터가 없습니다.")
+        return False
+    
+    
+# 🔹 카테고리 유효성 검사
+def is_valid_category(count_dict):
+    # 2 이상의 값만 필터링
+    above_one = [count for count in count_dict.values() if count > 1]
+    
+    # 1개만 존재하면 False, 그렇지 않으면 True
+    return len(above_one) >= 2
+
+
+
 # actual_record의 개수 세는 함수
 def get_max_index(user):
     user_id = user["localId"]  # 현재 로그인한 사용자의 UID
@@ -241,13 +292,77 @@ def get_most_common_clothes(data, temperature):
 
 
 # 머신러닝 돌리지 않고 단순 추천 시스템
-# 입은 횟수가 동일하면 데이터 구조 상 먼저 나오는 옷을 추천
-def recommendation_simple(temp):
-    # 🔵 Firebase에서 공용 기록(기온 구간별 옷 입은 횟수) 가져오기
-    public_data_path = 'public/cloth/'
-    public_data = db.child(public_data_path).get().val()
+# 단순 추천 시스템은 사용자의 횟수와 공용 횟수를 적절히 반영하여 추천
+def recommendation_simple(user, temp):
+    user_id = user["localId"]  # 현재 로그인한 사용자의 UID
+    token = user["idToken"]  # 인증 토큰
     
-    return get_most_common_clothes(public_data, temp)
+    # 🔵 Firebase에서 사용자자 기록(기온 구간별 옷 입은 횟수) 가져오기
+    user_outer_data = db.child("users").child(user_id).child("cloth/outer").get(token=token).val()
+    user_top_data = db.child("users").child(user_id).child("cloth/top").get(token=token).val()
+    user_pants_data = db.child("users").child(user_id).child("cloth/pants").get(token=token).val()
+    
+    # 🔵 Firebase에서 공용 기록 가져오기
+    public_outer_data = db.child("public/cloth/outer").get(token=token).val()
+    public_top_data = db.child("public/cloth/top").get(token=token).val()
+    public_pants_data = db.child("public/cloth/pants").get(token=token).val()
+    
+    # 🔵 기온 구간 찾기
+    temp_range = find_temp_range(temp)
+    
+    # 비율 변환
+    user_outer_ratio = process_cloth_data(user_outer_data, temp_range)
+    user_top_ratio = process_cloth_data(user_top_data, temp_range)
+    user_pants_ratio = process_cloth_data(user_pants_data, temp_range)
+    
+    public_outer_ratio = process_cloth_data(public_outer_data, temp_range) 
+    public_top_ratio = process_cloth_data(public_top_data, temp_range)
+    public_pants_ratio = process_cloth_data(public_pants_data, temp_range)
+    
+    
+    # 🔵 해당 기온 구간의 옷 입은 횟수 가져오기
+    user_outer_count = sum(user_outer_data[temp_range].values())
+    user_top_count = sum(user_top_data[temp_range].values())
+    user_pants_count = sum(user_pants_data[temp_range].values())
+    
+    # 횟수 별 반영 비율을 다르게 설정 (최대 60%)
+    if(user_outer_count < 7):
+        user_outer_weight = user_outer_count / 10
+    else:
+        user_outer_weight = 0.6   
+    if(user_top_count < 7):
+        user_top_weight = user_top_count / 10
+    else:
+        user_top_weight = 0.6
+    if(user_pants_count < 7):
+        user_pants_weight = user_pants_count / 10
+    else:
+        user_pants_weight = 0.6
+    
+    # 사용자 반영 비율과 공용 비율을 고려
+    user_outer_ratio = {k: v * user_outer_weight for k, v in user_outer_ratio.items()}
+    public_outer_ratio = {k: v * (1-user_outer_weight) for k, v in public_outer_ratio.items()}
+    
+    user_top_ratio = {k: v * user_top_weight for k, v in user_top_ratio.items()}
+    public_top_ratio = {k: v * (1-user_top_weight) for k, v in public_top_ratio.items()}
+    
+    user_pants_ratio = {k: v * user_pants_weight for k, v in user_pants_ratio.items()}
+    public_pants_ratio = {k: v * (1-user_pants_weight) for k, v in public_pants_ratio.items()}
+    
+    # 두 반영 비율을 합침
+    outer_ratio = {k: user_outer_ratio.get(k, 0) + public_outer_ratio.get(k, 0) for k in set(user_outer_ratio) | set(public_outer_ratio)}
+    top_ratio = {k: user_top_ratio.get(k, 0) + public_top_ratio.get(k, 0) for k in set(user_top_ratio) | set(public_top_ratio)}
+    pants_ratio = {k: user_pants_ratio.get(k, 0) + public_pants_ratio.get(k, 0) for k in set(user_pants_ratio) | set(public_pants_ratio)}
+    
+    # 🔵 가장 많이 입은 옷 찾기
+    outer = max(outer_ratio, key=outer_ratio.get)
+    top = max(top_ratio, key=top_ratio.get)
+    pants = max(pants_ratio, key=pants_ratio.get)
+    
+    print(f"outer_ratio: {outer_ratio}, top_ratio: {top_ratio}, pants_ratio: {pants_ratio}")
+    print(f"outer: {outer}, top: {top}, pants: {pants}")
+    
+    return outer, top, pants
 
 
 # actual_record 기록 + cloth 횟수 업데이트

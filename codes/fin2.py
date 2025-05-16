@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import calendar
 from datetime import datetime
+import threading
+import time
 
 import log_in
 import apiusing
@@ -92,9 +94,7 @@ def get_weather_info(date):
             f"최저기온: {tmin}℃, 최고기온: {tmax}℃, 평균기온 정보 없음"
         )
 
-# ----- 일정 및 날씨 창 -----
 def show_details(date):
-    
     global selected_date
     selected_date = date
 
@@ -102,7 +102,7 @@ def show_details(date):
         if user is None:
             messagebox.showwarning("로그인 필요")
             return
-            
+
         event = schedule_entry.get()
         if event:
             schedule_cache[selected_date] = True
@@ -114,10 +114,14 @@ def show_details(date):
             messagebox.showwarning("Empty Schedule", "일정을 입력해주세요.")
 
     def load_schedules():
-        global user
         schedules = log_in.get_schedules_for_date(user, date)
         for item in schedules:
             schedule_listbox.insert(tk.END, item)
+
+    def load_weather():
+        weather_info = get_weather_info(date)
+        weather_label.config(text=weather_info)
+        recommend_button.config(state="normal")
 
     # 새 창 생성
     details_window = tk.Toplevel(root)
@@ -136,12 +140,13 @@ def show_details(date):
     weather_frame = tk.LabelFrame(left_frame, text="날씨 정보", font=FONT_MEDIUM, bd=2, relief="groove", padx=10, pady=10)
     weather_frame.pack(fill="x", pady=(0, 10))
 
-    weather_info = get_weather_info(date)
-    weather_label = tk.Label(weather_frame, text=weather_info, font=FONT_SMALL, justify="left", anchor="w")
+    # 로딩 중 메시지
+    weather_label = tk.Label(weather_frame, text="날씨 정보 불러오는 중...", font=FONT_SMALL, justify="left", anchor="w")
     weather_label.pack(anchor="w")
 
     recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=lambda: recommed.show_frame(user, average_temp, date))
     recommend_button.pack(pady=5, anchor="w")
+    recommend_button.config(state="disabled")  # 로딩 중 비활성화
 
     # 일정 추가 프레임
     schedule_frame = tk.LabelFrame(left_frame, text="일정 추가", font=FONT_MEDIUM, bd=2, relief="groove", padx=10, pady=10)
@@ -161,12 +166,13 @@ def show_details(date):
     schedule_listbox = tk.Listbox(schedule_list_frame, width=30, height=18, font=FONT_MEDIUM)
     schedule_listbox.pack()
 
-    # 일정 목록 불러오기
-    load_schedules()
-
     # 열 비율 설정
     content_frame.grid_columnconfigure(0, weight=1)
     content_frame.grid_columnconfigure(1, weight=1)
+
+    # ----- 비동기 로딩 시작 -----
+    threading.Thread(target=load_schedules).start()
+    threading.Thread(target=load_weather).start()
     
 # ----- add cache function -------
 
@@ -296,6 +302,7 @@ def set_region(text):
     region = text
     
     apiusing.set_nx_ny(region)
+    apiusing.set_stnIds(region)
     show_calendar()
 
 # ----- 로그인/회원가입 버튼 -----
