@@ -8,6 +8,7 @@ import time
 import log_in
 import apiusing
 import recommed
+import logistic
 
 FONT_LARGE = ("맑은 고딕", 16)
 FONT_MEDIUM = ("맑은 고딕", 12)
@@ -150,6 +151,13 @@ def show_details(date):
         weather_info = get_weather_info(date)
         weather_label.config(text=weather_info)
         recommend_button.config(state="normal")
+        
+    def load_todays_clothing():
+        outer, top, pants = logistic.load_actual_choices(user, date)
+        if outer and top and pants:
+            recommend_label.config(text=f"오늘 입은 옷: {outer}, {top}, {pants}")
+        else:
+            recommend_label.config(text="오늘 입은 옷 정보 없음")
 
     # 새 창 생성
     details_window = tk.Toplevel(root)
@@ -172,9 +180,18 @@ def show_details(date):
     weather_label = tk.Label(weather_frame, text="날씨 정보 불러오는 중...", font=FONT_SMALL, justify="left", anchor="w")
     weather_label.pack(anchor="w")
 
-    recommend_button = tk.Button(weather_frame, text="옷차림 추천", command=lambda: recommed.show_frame(user, average_temp, date))
-    recommend_button.pack(pady=5, anchor="w")
+    # 프레임 생성해서 버튼과 텍스트를 나란히 배치
+    recommend_frame = tk.Frame(weather_frame)
+    recommend_frame.pack(anchor="w", pady=5)
+
+    recommend_button = tk.Button(recommend_frame, text="옷차림 추천", command=lambda: recommed.show_frame(user, average_temp, date))
+    recommend_button.grid(row=0, column=0, padx=5)
     recommend_button.config(state="disabled")  # 로딩 중 비활성화
+
+    # 🔸 오른쪽에 텍스트 추가
+    recommend_label = tk.Label(recommend_frame, text="오늘 입은 옷 불러오는 중...", font=FONT_SMALL)
+    recommend_label.grid(row=0, column=1, padx=5)
+
 
     # 일정 추가 프레임
     schedule_frame = tk.LabelFrame(left_frame, text="일정 추가", font=FONT_MEDIUM, bd=2, relief="groove", padx=10, pady=10)
@@ -205,6 +222,7 @@ def show_details(date):
     # ----- 비동기 로딩 시작 -----
     threading.Thread(target=load_schedules).start()
     threading.Thread(target=load_weather).start()
+    threading.Thread(target=load_todays_clothing).start()
     
 # ----- add cache function -------
 

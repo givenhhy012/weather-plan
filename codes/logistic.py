@@ -226,7 +226,7 @@ def recommendation_machine(user, temp):
     top = predict_outfits(top_model, temp, public_top, users_top, FEATURE_NAMES_TOP, top_features, top_encoder)
     pants = predict_outfits(pants_model, temp, public_pants, users_pants, FEATURE_NAMES_PANTS, pants_features, pants_encoder)
     
-    return outer, top, pants
+    return translate_choice(outer), translate_choice(top), translate_choice(pants)
 
 
 # 머신러닝 돌릴 수 있는지 확인하는 함수
@@ -494,3 +494,53 @@ def save_actual_record(user, date_str, temperature, outer, top, pants):
     except Exception as e:
         print(f"공용 옷 횟수 업데이트 실패: {e}")
         
+        
+# 해당 날짜에 입었던 옷을 불러오는 함수
+def load_actual_choices(user, date_str):
+    user_id = user["localId"]
+    token = user["idToken"]
+    
+    try:
+        # 날짜 경로까지 전체 데이터 가져오기
+        data = db.child("users").child(user_id).child('actual_records').child(date_str.replace("-", "")).get(token=token).val()
+        
+        if data is None:
+            print("해당 날짜의 기록이 없습니다.")
+            return None, None, None
+        
+        # outer, top, pants 각각의 actual_choice 값 추출
+        outer_choice = data.get('outer', {}).get('actual_choice')
+        top_choice = data.get('top', {}).get('actual_choice')
+        pants_choice = data.get('pants', {}).get('actual_choice')
+        
+        return translate_choice(outer_choice), translate_choice(top_choice), translate_choice(pants_choice)
+    
+    except Exception as e:
+        print(f"오류 발생: {e}")
+        return None, None, None
+
+def translate_choice(choice):
+    if choice == "coat":
+        return "코트"
+    elif choice == "jacket":
+        return "자켓"
+    elif choice == "none":
+        return "없음"
+    elif choice == "padding":
+        return "패딩"
+    elif choice == "brushed":
+        return "브러쉬드"
+    elif choice == "hoodie":
+        return "후드티"
+    elif choice == "longsleeve":
+        return "긴팔티"
+    elif choice == "tshirt":
+        return "반팔티"
+    elif choice == "jean":
+        return "청바지"
+    elif choice == "slacks":
+        return "슬랙스"
+    elif choice == "short":
+        return "반바지"
+    else:
+        return None
