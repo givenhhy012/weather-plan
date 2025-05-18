@@ -110,6 +110,28 @@ def get_all_schedules(user):
         print("전체 일정 불러오기 실패:", e)
         return []
 
+# 특정 일정 삭제
+def delete_schedule_item(user, date_str, schedule_title):
+    """사용자의 특정 일정을 삭제합니다."""
+    try:
+        user_id = user["localId"]
+        token = user["idToken"]
+        schedules_ref = db.child("users").child(user_id).child("schedules")
+        schedules = schedules_ref.get(token=token)
+
+        if schedules.each():
+            for schedule in schedules.each():
+                data = schedule.val()
+                key = schedule.key() # 삭제할 데이터의 키
+                if data.get("date") == date_str and data.get("title") == schedule_title:
+                    schedules_ref.child(key).remove(token=token)
+                    print(f"'{date_str}'의 일정 '{schedule_title}' 삭제 성공")
+                    return True
+        print(f"'{date_str}'에 '{schedule_title}' 일정을 찾을 수 없습니다.")
+        return False
+    except Exception as e:
+        print("일정 삭제 실패:", e)
+        return False
 
 
 initial_template = {

@@ -102,6 +102,7 @@ def show_details(date):
         if user is None:
             messagebox.showwarning("로그인 필요")
             return
+        load_schedules()
 
         event = schedule_entry.get()
         if event:
@@ -114,9 +115,36 @@ def show_details(date):
             messagebox.showwarning("Empty Schedule", "일정을 입력해주세요.")
 
     def load_schedules():
+        schedule_listbox.delete(0, tk.END)
         schedules = log_in.get_schedules_for_date(user, date)
         for item in schedules:
             schedule_listbox.insert(tk.END, item)
+    
+    def delete_selected_schedule():
+        selected_item_index = schedule_listbox.curselection()
+        if not selected_item_index:
+            messagebox.showwarning("선택 필요", "삭제할 일정을 목록에서 선택해주세요.")
+            return
+
+        selected_schedule_title = schedule_listbox.get(selected_item_index)
+
+        if messagebox.askyesno("일정 삭제 확인", f"'{selected_schedule_title}' 일정을 삭제하시겠습니까?"):
+            if user:
+                success = log_in.delete_schedule_item(user, selected_date, selected_schedule_title)
+                if success:
+                    # 캐시 업데이트 및 캘린더 UI 업데이트
+                    if selected_date in schedule_cache:
+                        # 해당 날짜에 다른 일정이 더 있는지 확인
+                        remaining_schedules = log_in.get_schedules_for_date(user, selected_date)
+                        if not remaining_schedules: # 남은 일정이 없으면 캐시에서 제거
+                            del schedule_cache[selected_date]
+                    update_calendar()
+                    load_schedules() # 목록 새로고침
+                    messagebox.showinfo("삭제 완료", "일정이 삭제되었습니다.")
+                else:
+                    messagebox.showerror("삭제 실패", "일정 삭제에 실패했습니다.")
+            else:
+                messagebox.showerror("오류", "사용자 정보가 없습니다.")
 
     def load_weather():
         weather_info = get_weather_info(date)
@@ -126,7 +154,7 @@ def show_details(date):
     # 새 창 생성
     details_window = tk.Toplevel(root)
     details_window.title(f"{date} 상세 정보")
-    details_window.geometry("800x400")
+    details_window.geometry("800x450")
 
     # 전체를 감싸는 프레임 (2열 구성)
     content_frame = tk.Frame(details_window)
@@ -164,7 +192,11 @@ def show_details(date):
     schedule_list_frame.grid(row=0, column=1, sticky="nsew")
 
     schedule_listbox = tk.Listbox(schedule_list_frame, width=30, height=18, font=FONT_MEDIUM)
-    schedule_listbox.pack()
+    schedule_listbox.pack(pady=(0, 5))
+
+    #삭제 버튼 추가
+    delete_button = tk.Button(schedule_list_frame, text = "선택 일정 삭제", command=delete_selected_schedule, font=FONT_SMALL)
+    delete_button.pack(pady=5)
 
     # 열 비율 설정
     content_frame.grid_columnconfigure(0, weight=1)
