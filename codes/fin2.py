@@ -309,7 +309,7 @@ def update_calendar(*args):
                     text=display_text,
                     command=lambda d=date: show_details(d),
                     width=10, 
-                    height=2, # 두 줄 표시에 적합하도록 높이 조정
+                    height=4, # 두 줄 표시에 적합하도록 높이 조정
                     fg=fg_color,
                     bg=bg_color,
                     font=FONT_MEDIUM,

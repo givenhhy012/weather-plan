@@ -116,22 +116,17 @@ def delete_schedule_item(user, date_str, schedule_title):
     try:
         user_id = user["localId"]
         token = user["idToken"]
-        schedules_ref = db.child("users").child(user_id).child("schedules")
-        schedules = schedules_ref.get(token=token)
-
-        if schedules.each():
-            for schedule in schedules.each():
+        schedules_ref = db.child("users").child(user_id).child("schedules").get(token=token)
+        if schedules_ref.each():
+            for schedule in schedules_ref.each():
                 data = schedule.val()
-                key = schedule.key() # 삭제할 데이터의 키
                 if data.get("date") == date_str and data.get("title") == schedule_title:
-                    schedules_ref.child(key).remove(token=token)
-                    print(f"'{date_str}'의 일정 '{schedule_title}' 삭제 성공")
+                    db.child("users").child(user_id).child("schedules").child(schedule.key()).remove(token=token)
+                    print(f"일정 '{schedule_title}' 삭제 성공")
                     return True
-        print(f"'{date_str}'에 '{schedule_title}' 일정을 찾을 수 없습니다.")
-        return False
+                print(f"일정 '{schedule_title}' 삭제 실패: 해당 일정이 없습니다.")
     except Exception as e:
         print("일정 삭제 실패:", e)
-        return False
 
 
 initial_template = {
