@@ -72,6 +72,10 @@ def show_frame(user, temperature, date_str):
             print(f"👕 상의 추천: {top}")
             print(f"👖 하의 추천: {pants}")
         
+            outer = translation_for_recommendation(outer)
+            top = translation_for_recommendation(top)
+            pants = translation_for_recommendation(pants)
+            
             result_label.config(text=f"아우터 추천: {outer}, 상의 추천: {top}, 하의 추천: {pants}")
             record_btn.pack(pady=5)  # "오늘의 옷 기록하기" 버튼 보이기
 
@@ -146,6 +150,33 @@ def translate_choice(choice):
     elif choice == "반바지(치마)":
         return "short"
         
+        
+def translation_for_recommendation(choice):
+    if choice == "padding":
+        return "패딩"
+    elif choice == "coat":
+        return "코트"
+    elif choice == "jacket":
+        return "자켓"
+    elif choice == "none":
+        return "없음"
+    elif choice == "brushed":
+        return "기모 의류"
+    elif choice == "hoodie":
+        return "후드티"
+    elif choice == "longsleeve":
+        return "롱슬리브"
+    elif choice == "tshirt":
+        return "반팔"
+    elif choice == "brushed":
+        return "기모바지"
+    elif choice == "jean":
+        return "청바지"
+    elif choice == "slacks":
+        return "슬랙스"
+    elif choice == "short":
+        return "반바지(치마)"
+    
     # root.mainloop()
 
 # 외부에서 호출할 수 있도록 설정
