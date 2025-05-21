@@ -19,6 +19,7 @@ calendar.setfirstweekday(calendar.SUNDAY)
 
 # ----- 초기 설정 -----
 schedule_cache = {} # {"2025-05-01": True, "2024-05-03": True, ...}
+clothing_cache = {} # 옷 기록 캐시 추가
 user = None
 average_temp = None
 root = tk.Tk()
@@ -158,6 +159,14 @@ def show_details(date):
             recommend_label.config(text=f"오늘 입은 옷: {outer}, {top}, {pants}")
         else:
             recommend_label.config(text="오늘 입은 옷 정보 없음")
+    
+    def open_recommend_window_and_refresh_calendar(current_user, temp, current_date):
+        recommed.show_frame(current_user, temp, current_date) #
+        # 옷 추천/기록 창이 닫힌 후 달력 새로고침
+        year_val = int(year_combobox.get())
+        month_val = int(month_combobox.get())
+        load_monthly_clothing_cache(year_val, month_val) # 현재 달의 옷 기록 캐시 업데이트
+        update_calendar() # 달력 UI 업데이트
 
     # 새 창 생성
     details_window = tk.Toplevel(root)
@@ -243,52 +252,70 @@ def load_monthly_schedule_cache(year, month):
             except:
                 continue
 
+def load_monthly_clothing_cache(year, month):
+    global clothing_cache
+    if user is None:
+        return
+    clothing_cache = {} # 새 달에 대한 캐시 초기화
+    dates_with_records = log_in.get_dates_with_clothing_records(user, year, month) #
+    for date_str in dates_with_records:
+        clothing_cache[date_str] = True
+
 # ----- 캘린더 업데이트 -----
 def update_calendar(*args):
     year = int(year_combobox.get())
     month = int(month_combobox.get())
-    month_label.config(text=f"{year}년 {month}월")
-    cal = calendar.monthcalendar(year, month)
-    
+
     load_monthly_schedule_cache(year, month)
-    
+    load_monthly_clothing_cache(year, month) # 옷 기록 캐시 로드 호출 추가
+
     month_label.config(text=f"{year}년 {month}월")
     cal = calendar.monthcalendar(year, month)
 
     for widget in calendar_frame.winfo_children():
-        if isinstance(widget, tk.Button):
+        if isinstance(widget, tk.Button): 
             widget.destroy()
 
     weekdays = ["일", "월", "화", "수", "목", "금", "토"]
-    for idx, day in enumerate(weekdays):
-        fg_color = "red" if day == "일" else ("blue" if day == "토" else "black")
-        label = tk.Label(calendar_frame, text=day, font=FONT_MEDIUM, fg=fg_color)
+    for idx, day_name in enumerate(weekdays):
+        fg_color = "red" if day_name == "일" else ("blue" if day_name == "토" else "black")
+        label = tk.Label(calendar_frame, text=day_name, font=FONT_MEDIUM, fg=fg_color)
         label.grid(row=1, column=idx)
 
     for i, week in enumerate(cal):
-        for j, day in enumerate(week):
-            if day != 0:
-                date = f"{year}-{month:02d}-{day:02d}"
-                text = f"{day}"
+        for j, day_val in enumerate(week):
+            if day_val != 0:
+                date = f"{year}-{month:02d}-{day_val:02d}"
+
                 fg_color = "red" if j == 0 else ("blue" if j == 6 else "black")
                 bg_color = "lightyellow" if date == f"{now.year}-{now.month:02d}-{now.day:02d}" else "white"
-                
-                if schedule_cache.get(date):
-                    display_text = f"{day}\n*"
-                else:
-                    display_text = f"{day}"
+
+                has_schedule = schedule_cache.get(date, False) #
+                has_clothing = clothing_cache.get(date, False) #
+
+                icons = []
+                if has_schedule:
+                    icons.append("🗓")
+                if has_clothing:
+                    icons.append("👕")
+
+                display_text = f"{day_val}"
+                if icons:
+                    display_text += f"\n{''.join(icons)}"
+
 
                 btn = tk.Button(
                     calendar_frame,
                     text=display_text,
                     command=lambda d=date: show_details(d),
-                    width=10,
-                    height=4,
+                    width=10, 
+                    height=2, # 두 줄 표시에 적합하도록 높이 조정
                     fg=fg_color,
                     bg=bg_color,
-                    font=FONT_MEDIUM
+                    font=FONT_MEDIUM,
+                    justify="center" 
                 )
-                btn.grid(row=i+2, column=j, padx=2, pady=2)
+                btn.grid(row=i + 2, column=j, padx=2, pady=2)
 
 # ----- 월 변경 함수 -----
 def change_month(direction):
