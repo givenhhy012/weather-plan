@@ -71,7 +71,7 @@ def show_frame(user, temperature, date_str):
             print(f"👚 아우터 추천: {outer}")
             print(f"👕 상의 추천: {top}")
             print(f"👖 하의 추천: {pants}")
-        
+
             outer = translation_for_recommendation(outer)
             top = translation_for_recommendation(top)
             pants = translation_for_recommendation(pants)

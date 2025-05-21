@@ -252,3 +252,33 @@ initial_template = {
         }
     }
 }
+
+def get_dates_with_clothing_records(user, year, month):
+    """Fetch dates within a given month that have clothing records."""
+    try:
+        user_id = user["localId"]
+        token = user["idToken"]
+        # Get all records under actual_records
+        all_records_node = db.child("users").child(user_id).child("actual_records").get(token=token)
+
+        dates_with_clothing = []
+        if all_records_node.val(): # Check if actual_records itself exists and is not empty
+            # Iterate through each child node (date entries or 'record_count')
+            for record_key, record_data in all_records_node.val().items():
+                if record_key == "record_count": # Skip the counter
+                    continue
+                try:
+                    # Assuming record_key is YYYYMMDD
+                    record_date_obj = datetime.strptime(record_key, "%Y%m%d")
+                    if record_date_obj.year == year and record_date_obj.month == month:
+                        # If a node exists with a date as its key (and it's not record_count),
+                        # it means clothes were recorded for that day.
+                        dates_with_clothing.append(record_date_obj.strftime("%Y-%m-%d"))
+                except ValueError:
+                    # Handles cases where a key might not be in YYYYMMDD format
+                    print(f"Skipping invalid date key: {record_key}")
+                    continue
+        return dates_with_clothing
+    except Exception as e:
+        print(f"Error fetching dates with clothing records: {e}")
+        return []
