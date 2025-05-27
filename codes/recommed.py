@@ -10,7 +10,7 @@ def show_frame(user, temperature, date_str):
     root.title("날씨 일정 관리")
     root.geometry("400x500")
 
-    temp_label = tk.Label(root, text=f"오늘의 평균기온: {temperature}°C", font=("Arial", 14))
+    temp_label = tk.Label(root, text=f"평균기온: {temperature}°C", font=("Arial", 14))
     temp_label.pack(pady=10)
 
     # 지역 변수로 선언
