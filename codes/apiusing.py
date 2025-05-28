@@ -9,11 +9,17 @@ API_KEY = "c9+P8KoYVHHclcwNES4SC2Iq7MZW787CxlmV+J2aXwxh7sVV4sZ76OFiOKoVgN/HDVTt6
 # 기상청_지상(종관, ASOS) 일자료 조회 API 키 (공공데이터포털에서 발급받은 디코딩된 키 )
 API_PAST_KEY = "c9+P8KoYVHHclcwNES4SC2Iq7MZW787CxlmV+J2aXwxh7sVV4sZ76OFiOKoVgN/HDVTt689y004GqWIRvWTFmQ=="
 
+# 기상청 중기예보 API 키 (공공데이터포털에서 발급받은 디코딩된 키 )
+API_FUTURE_KEY = "c9+P8KoYVHHclcwNES4SC2Iq7MZW787CxlmV+J2aXwxh7sVV4sZ76OFiOKoVgN/HDVTt689y004GqWIRvWTFmQ=="
+
 # 격자 좌표 (예: 서울 종로구 -> nx=60, ny=127)
 NX, NY = 60, 127
 
 # 관측소 좌표 (과거 기온을 가져오기 위한 관측소 ID)
 StnIds = "108"  # 기본값은 서울역
+
+# 중기예보 지역 코드 (REG_ID)
+REG_ID = "11B10101"  # 기본값은 서울 지역의 REG_ID (중기예보를 위한 지역 코드)
 
 # 초단기실황 API URL
 API_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
@@ -24,6 +30,8 @@ API_URL_dangi = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVil
 # 요청 URL (기상청 종관 기온 데이터: 일자료)
 API_URL_PAST = "http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList"
 
+# 요청 URL (기상청 중기예보 데이터)
+API_URL_FUTURE = "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa"
 
 # 지역별 좌표 설정
 def set_nx_ny(region):
@@ -90,6 +98,40 @@ def set_stnIds(region):
         StnIds = "159"
     elif region == "제주":
         StnIds = "184"
+        
+        
+# 중기예보를 
+def set_REG_ID(region):
+    global REG_ID
+    
+    if region == "서울":
+        REG_ID = "11B10101"
+    elif region == "춘천":
+        REG_ID = "11B20101"
+    elif region == "강릉":
+        REG_ID = "11B30101"
+    elif region == "홍성":
+        REG_ID = "11B40101"
+    elif region == "청주":
+        REG_ID = "11B50101"
+    elif region == "태백":
+        REG_ID = "11B60101"
+    elif region == "전주":
+        REG_ID = "11B70101"
+    elif region == "대전":
+        REG_ID = "11B80101"
+    elif region == "대구":
+        REG_ID = "11B90101"
+    elif region == "울산":
+        REG_ID = "11H20101"
+    elif region == "광주":
+        REG_ID = "11F20501"
+    elif region == "창원":
+        REG_ID = "11H20301"
+    elif region == "부산":
+        REG_ID = "11H20201"
+    elif region == "제주":
+        REG_ID = "11G00201"
 
 
 
@@ -189,10 +231,15 @@ def get_min_max_temperature(date_str):
     base_date = now - timedelta(days=1) 
     base_time = "2300"      # 전날 23:00 발표자료 기준
     
+    future_date = now + timedelta(days=3)  # 중기예보는 3일 뒤부터 가능
+    
     yesterday = now - timedelta(days=1)
     
     if date_str.replace("-", "") <= yesterday.strftime("%Y%m%d"):
         return get_past_temperature(date_str)
+    
+    if date_str.replace("-", "") > future_date.strftime("%Y%m%d"):
+        return get_mid_temp_forecast(date_str)
         
     params = {
         "serviceKey": API_KEY,
@@ -253,6 +300,48 @@ def get_past_temperature(date_str):
             else:
                 print("API 응답 형식이 올바르지 않습니다.")
                 return None, None
+        else:
+            print(f"API 호출 실패: {response.status_code}")
+            return None, None
+    except Exception as e:
+        print(f"오류 발생: {e}")
+        return None, None
+    
+
+# 중기예보 api 활용해 3~10일 사이의 최고, 최저 기온을 가져오는 함수
+def get_mid_temp_forecast(date_str):
+    # 발표 기준시각: 오늘 오전 6시
+    now = datetime.now()
+    tmFc = now.replace(hour=6, minute=0, second=0, microsecond=0).strftime("%Y%m%d%H%M")
+    
+    target_date = datetime.strptime(date_str, "%Y-%m-%d")
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    delta = target_date - today
+    offset = delta.days
+    
+    global REG_ID
+
+    params = {
+        "serviceKey": API_FUTURE_KEY,
+        "pageNo": 1,
+        "numOfRows": 10,
+        "dataType": "JSON",
+        "regId": REG_ID,
+        "tmFc": tmFc,
+    }
+
+    try:
+        response = requests.get(API_URL_FUTURE, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            item = data["response"]["body"]["items"]["item"][0]
+
+            min_key = f"taMin{offset}"
+            max_key = f"taMax{offset}"
+            
+            tmin = float(item[min_key])
+            tmax = float(item[max_key])
+            return tmin, tmax
         else:
             print(f"API 호출 실패: {response.status_code}")
             return None, None

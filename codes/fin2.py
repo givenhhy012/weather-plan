@@ -380,6 +380,7 @@ def set_region(text):
     
     apiusing.set_nx_ny(region)
     apiusing.set_stnIds(region)
+    apiusing.set_REG_ID(region)
     show_calendar()
 
 # ----- 로그인/회원가입 버튼 -----
