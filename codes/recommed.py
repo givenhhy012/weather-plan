@@ -7,7 +7,7 @@ import logistic
 def show_frame(user, temperature, date_str):
     # GUI 구성
     root = tk.Tk()
-    root.title("날씨 일정 관리")
+    root.title("옷차림 추천 시스템")
     root.geometry("400x500")
 
     temp_label = tk.Label(root, text=f"평균기온: {temperature}°C", font=("Arial", 14))
@@ -71,10 +71,6 @@ def show_frame(user, temperature, date_str):
             print(f"👚 아우터 추천: {outer}")
             print(f"👕 상의 추천: {top}")
             print(f"👖 하의 추천: {pants}")
-
-            outer = translation_for_recommendation(outer)
-            top = translation_for_recommendation(top)
-            pants = translation_for_recommendation(pants)
             
             result_label.config(text=f"아우터 추천: {outer}, 상의 추천: {top}, 하의 추천: {pants}")
             record_btn.pack(pady=5)  # "오늘의 옷 기록하기" 버튼 보이기

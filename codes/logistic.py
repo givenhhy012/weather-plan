@@ -226,6 +226,8 @@ def recommendation_machine(user, temp):
     top = predict_outfits(top_model, temp, public_top, users_top, FEATURE_NAMES_TOP, top_features, top_encoder)
     pants = predict_outfits(pants_model, temp, public_pants, users_pants, FEATURE_NAMES_PANTS, pants_features, pants_encoder)
     
+    print (f"추천된 옷: {outer}, {top}, {pants}")
+    
     return translate_choice(outer), translate_choice(top), translate_choice(pants)
 
 
@@ -372,6 +374,11 @@ def recommendation_simple(user, temp):
     
     print(f"outer_ratio: {outer_ratio}, top_ratio: {top_ratio}, pants_ratio: {pants_ratio}")
     print(f"outer: {outer}, top: {top}, pants: {pants}")
+    
+    
+    outer = translate_choice(outer)
+    top = translate_choice(top)
+    pants = translate_choice(pants)
     
     return outer, top, pants
 
