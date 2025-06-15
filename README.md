@@ -6,16 +6,15 @@
 * 2024403015 이용주
 
 
+
 ## 프로젝트 소개
 
----
 
 일정, 날씨 정보, 옷 추천 정보를 한 번에 볼 수 있는 프로그램
 
 
 ## 파일 구성
 
----
 
 * apiusing.py (날씨 api관련)
 * **fin2.py** (메인 프로그램 파일)
@@ -26,7 +25,6 @@
 
 ## 사용한 라이브러리
 
----
 
 * pyrebase4 ( pip install pyrebase4 )
 * pandas ( pip install pandas )
