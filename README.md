@@ -17,7 +17,7 @@
 
 
 * apiusing.py (날씨 api관련)
-* **fin2.py** (메인 프로그램 파일)
+* **main.py** (메인 프로그램 파일)
 * log_in.py (firebase 로그인 및 데이터베이스관련)
 * logistic.py (머신러닝 및 단순 옷 추천 기능)
 * recommed.py (옷 추천 화면UI)
