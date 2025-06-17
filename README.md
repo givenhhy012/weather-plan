@@ -30,3 +30,4 @@
 * pandas ( pip install pandas )
 * scikit-learn ( pip install scikit-learn )
 * tkinter ( sudo apt install python3-tk )
+* requests ( pip install requests )
